@@ -1,2 +1,238 @@
 /* House of Achen Git-managed visual overrides.
-   Keep this file for fast styling updates without replacing the full v7 app shell. */
+   Palette refresh: dusty muted purple centered on #B792C8. */
+
+:root{
+  --bg:#faf7fb;
+  --paper:#fffefe;
+  --paper2:#f6eff8;
+  --ink:#332d37;
+  --muted:#756b7b;
+  --line:#e2d7e7;
+  --rose:#b792c8;
+  --rose2:#c9acd7;
+  --blush:#eadff0;
+  --cream:#fffaf6;
+  --mint:#bed7c2;
+  --mintInk:#46614c;
+  --peach:#e8bda8;
+  --peachInk:#765244;
+  --blue:#b8d1e4;
+  --blueInk:#4e6577;
+  --lilac:#d8c6e6;
+  --lilacInk:#655171;
+  --butter:#eadba7;
+  --butterInk:#74663b;
+  --sage:#bed0b5;
+  --sageInk:#52684d;
+  --coral:#dda9b6;
+  --coralInk:#7d4f5c;
+  --shadow:0 14px 34px rgba(83,59,94,.11);
+}
+
+body{
+  background:
+    radial-gradient(circle at 12% 10%,rgba(183,146,200,.13),transparent 28%),
+    radial-gradient(circle at 88% 4%,rgba(184,209,228,.13),transparent 24%),
+    linear-gradient(180deg,#fcf9fd 0%,#faf7fb 54%,#f8f5fa 100%);
+}
+
+.sidebar{
+  background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(248,243,250,.98));
+  border-right-color:#ded1e4;
+}
+.brand .kicker,.eyebrow{color:#946fa6!important}
+.brand h1,.page-title,.hero h2,.section-title h3{color:#3e3344}
+.nav-label{color:#9b86a4}
+.nav-btn{color:#665a6d}
+.nav-btn:hover{background:#f3eaf6}
+.nav-btn.active{
+  background:linear-gradient(90deg,#eadcf0,#f7f0f9);
+  color:#765587;
+  box-shadow:inset 3px 0 0 #b792c8;
+}
+
+.topbar{
+  background:rgba(255,253,255,.92);
+  border-bottom-color:#e8deeb;
+  backdrop-filter:blur(14px);
+}
+
+.card,.glance-card,.review-item,.journal-item,.book,.modal,.power-card{
+  border-color:#e5dbe9;
+}
+.card{
+  box-shadow:0 10px 28px rgba(86,62,96,.07);
+}
+.hero{
+  background:linear-gradient(135deg,rgba(234,223,240,.82),rgba(255,249,246,.94) 52%,rgba(184,209,228,.24));
+  border:1px solid #e2d5e8;
+  border-radius:22px;
+  padding:22px;
+  box-shadow:0 12px 32px rgba(86,62,96,.08);
+}
+
+.btn{
+  border-color:#ded2e3;
+  color:#5e5264;
+  background:#fff;
+}
+.btn:hover{background:#f6f0f8;border-color:#cbb8d5}
+.btn.primary{
+  background:linear-gradient(135deg,#b792c8,#9f79b2);
+  border-color:#9f79b2;
+  color:#fff;
+  box-shadow:0 8px 18px rgba(159,121,178,.24);
+}
+.btn.primary:hover{background:linear-gradient(135deg,#ad86bf,#9169a6)}
+.btn.danger{color:#8a5361;background:#fff7f8}
+
+.source-pill,.mini-tag{
+  background:#f0e5f4;
+  color:#72557f;
+  border-color:#ddcce6;
+}
+
+/* Keep the app colorful without turning it candy-bright. */
+.kpi.a-mint{background:linear-gradient(145deg,#fbfefb,#edf6ee);border-color:#d2e3d4}
+.kpi.a-rose{background:linear-gradient(145deg,#fff,#efe3f3);border-color:#d8c2e1}
+.kpi.a-peach{background:linear-gradient(145deg,#fff,#f7e8df);border-color:#ead4c7}
+.kpi.a-blue{background:linear-gradient(145deg,#fff,#e8f1f7);border-color:#d2e2ec}
+.kpi.a-lilac{background:linear-gradient(145deg,#fff,#eee7f4);border-color:#ddd0e8}
+.kpi-value{color:#3d3342}
+.kpi-note,.sub,.tinyline{color:#786e7e!important}
+
+.c-income{background:#e8f3ea!important;color:#4a6550!important}
+.c-bills{background:#f0e5f4!important;color:#72557f!important}
+.c-expense{background:#f7e7de!important;color:#795649!important}
+.c-savings{background:#e7f0f7!important;color:#50697b!important}
+.c-debt{background:#eee7f4!important;color:#665274!important}
+.c-transfer{background:#f7f0d7!important;color:#74643b!important}
+.c-invest{background:#edf3e9!important;color:#52684d!important}
+
+.callout{border-color:#dfd3e4}
+.callout.mint{background:#f0f7f1;border-color:#d4e5d7}
+.callout.blue{background:#eef5fa;border-color:#d6e4ee}
+.callout.butter{background:#fbf7e8;border-color:#e9dfbd}
+.info-only{background:linear-gradient(135deg,#f8f1fa,#eef4fb);border-color:#ded2e8}
+.capacity-note{background:#fbf7e9;border-color:#e7dcb8}
+
+.power-card{
+  background:linear-gradient(145deg,#fff,#f8f2fa);
+  box-shadow:0 8px 22px rgba(89,66,99,.06);
+}
+.power-card.accent{
+  background:linear-gradient(145deg,#f2e9f6,#fff);
+  border-color:#d5c3df;
+}
+.refresh-status{background:#faf6fb;border-color:#e2d7e7}
+.refresh-dot{background:#9abf9f;box-shadow:0 0 0 4px rgba(154,191,159,.15)}
+
+.tracker-card .badge{background:#efe4f3;color:#755480}
+.mini-progress{background:#eee6f0}
+.mini-progress i{background:linear-gradient(90deg,#b792c8,#d7a5b5)}
+
+.quick-note{background:linear-gradient(145deg,#fffdf9,#f6eef8);border-color:#e6d8ea}
+.quick-note.pinned{background:linear-gradient(145deg,#fff8df,#f2e7f6)}
+.journal-item:hover{background:#f8f1fa}
+.journal-item.active{border-color:#bea0cd;background:#f2e8f6}
+
+/* Companion refresh */
+.companion-btn{
+  border-color:#d9c7e1;
+  background:linear-gradient(145deg,#fff,#f3ebf6);
+  box-shadow:0 12px 28px rgba(72,51,82,.17);
+  overflow:visible;
+}
+.companion-label{
+  background:#fff;
+  border-color:#dccfe2;
+  color:#695b70;
+}
+.luna-bubble{
+  background:linear-gradient(145deg,#fff,#f7f0f9);
+  border-color:#d8c7e0;
+  box-shadow:0 18px 42px rgba(72,51,82,.18);
+  padding-top:15px;
+}
+.luna-bubble b{color:#5f466c}
+.luna-bubble p{color:#665a6d}
+.luna-bubble .close-tip{color:#8e7998}
+.companion-scene{
+  width:92px;
+  height:66px;
+  margin:-2px 0 7px -2px;
+  display:flex;
+  align-items:flex-end;
+}
+.companion-scene svg{width:100%;height:100%;overflow:visible}
+.diana-box{
+  background:linear-gradient(145deg,#fff,#f3ecf6 60%,#eef4f8);
+  border-color:#ddd0e4;
+}
+.diana-say{color:#615667}
+.pet-card{background:linear-gradient(145deg,#fff,#f7f1f9)}
+
+.nova-btn{background:linear-gradient(145deg,#fff,#eee4f3)}
+.nova-drawer{background:#fffefe}
+.nova-chat{background:linear-gradient(#fff,#faf6fb)}
+.msg.nova{background:#f1e7f5;border-color:#decde6}
+.msg.user{background:#f7e9ef;border-color:#e5cfd8}
+.nova-close{background:#f0e5f4;color:#70547d}
+.loadbar{background:#eee5f1}
+.loadbar>i{background:linear-gradient(90deg,#b792c8,#b8d1e4,#d79aaf)}
+
+/* Plain-language money reader */
+.money-reader{
+  margin-top:12px;
+  padding:13px;
+  border:1px solid #dfd3e4;
+  border-radius:16px;
+  background:linear-gradient(135deg,#fff,#f7f0f9);
+}
+.money-reader-title{
+  font:600 15px Georgia,serif;
+  color:#594762;
+  margin-bottom:9px;
+}
+.money-reader-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+}
+.money-reader-item{
+  padding:10px;
+  border-radius:12px;
+  border:1px solid #e6dce9;
+  background:#fff;
+  min-height:76px;
+}
+.money-reader-item b{display:block;font-size:11px;letter-spacing:.02em;color:#4f4355}
+.money-reader-item span{display:block;font-size:10.5px;line-height:1.4;color:#786e7e;margin-top:4px}
+.money-reader-item.free{background:#f2e9f6;border-color:#d8c4e1}
+.money-reader-item.spoken{background:#eef4f8;border-color:#d6e3eb}
+.money-reader-item.sitting{background:#f8ece5;border-color:#ead8cd}
+.money-reader-item.borrow{background:#fbf7e8;border-color:#e8debd}
+.money-free{box-shadow:inset 0 3px 0 #b792c8,0 10px 28px rgba(86,62,96,.07)}
+.money-spoken{box-shadow:inset 0 3px 0 #aebfd8,0 10px 28px rgba(86,62,96,.07)}
+.money-sitting{box-shadow:inset 0 3px 0 #ddb59f,0 10px 28px rgba(86,62,96,.07)}
+.money-pay{box-shadow:inset 0 3px 0 #a8c5ad,0 10px 28px rgba(86,62,96,.07)}
+.money-borrow{box-shadow:inset 0 3px 0 #d7c572,0 8px 22px rgba(86,62,96,.06)}
+
+.table th{background:#f4eef6;color:#65586c}
+.table tr:hover td{background:#fcf9fd}
+input,select,textarea{border-color:#dfd3e4!important}
+input:focus,select:focus,textarea:focus{outline:2px solid rgba(183,146,200,.22);border-color:#b792c8!important}
+
+.flipbook-overlay{background:radial-gradient(circle at 50% 18%,#5e4768,#221a27 70%)}
+.flip-thumb.active{border-color:#c9acd7}
+.beauty-book-card{background:linear-gradient(145deg,#fff,#f4ebf7)}
+
+@media(max-width:850px){
+  .money-reader-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hero{padding:17px}
+}
+@media(max-width:520px){
+  .money-reader-grid{grid-template-columns:1fr 1fr}
+  .money-reader-item{min-height:68px}
+  .companion-scene{width:82px;height:60px}
+}
