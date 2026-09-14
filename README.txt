@@ -1,20 +1,26 @@
-House of Achen Life HQ v6
+House of Achen Life HQ
 
-Adds Overall Spending / last-20 bank activity categorization, Chime SpotMe planning-balance treatment, Fidelity + Climatize investment categories, Food Delivery Tracker, Grocery List, and a ChatGPT banking-refresh launcher.
+Current hosted workflow:
+- GitHub source: Xtyxo/House-of-Achen
+- Production: house-of-achen-life-hq.netlify.app
+- Netlify builds from main using node build.mjs and publishes dist
 
-HOUSE OF ACHEN LIFE HQ v5
+v7 foundation:
+- Overall Spending / recent bank activity categorization
+- Chime SpotMe planning-balance treatment
+- Fidelity + Climatize investment categories
+- Food Delivery Tracker
+- Grocery List
+- Refresh HQ live-data pulls
+- separate raw-balance/spending-power math for Ally + Chime
+- Package Tracker
+- Beauty Inventory
+- Home Stockpile
+- Beauty Babe 20-page flipbook + PDF preserved from the production asset bundle
 
-Deploy this entire folder to Netlify. Do not upload only index.html; the Beauty Babe flipbook uses the beauty-babe folder.
-
-Included:
-- index.html
-- manifest.webmanifest
-- service-worker.js
-- Luna app icons
-- Beauty Babe 20-page flipbook images
-- It's Beauty Babe PDF
-
-After deployment, open the Netlify HTTPS URL in Chrome and use Add to Home screen / Install.
-
-
-v7 adds Refresh HQ live-data pulls, separate raw-balance/spending-power math for Ally + Chime, package tracker, Beauty Inventory, and Home Stockpile.
+Visual refresh:
+- Main color changed to dusty muted purple #B792C8
+- More colorful muted lavender, rose, blue, sage, peach and butter accents
+- Luna and Diana companion artwork refreshed to cute green-eyed 90s-anime-inspired versions
+- Luna popup cycles through yarn, sleeping-together and Diana-heart poses
+- financial cards use clearer language: Free to Use, Spoken For, Currently Sitting and Borrowable Capacity
