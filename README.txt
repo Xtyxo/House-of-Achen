@@ -24,3 +24,6 @@ Visual refresh:
 - Luna and Diana companion artwork refreshed to cute green-eyed 90s-anime-inspired versions
 - Luna popup cycles through yarn, sleeping-together and Diana-heart poses
 - financial cards use clearer language: Free to Use, Spoken For, Currently Sitting and Borrowable Capacity
+
+Deployment note:
+- Public-repo deploy trigger refreshed 2026-09-14.
