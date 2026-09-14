@@ -48,7 +48,19 @@ const cssTag = '<link rel="stylesheet" href="./overrides/app.css">';
 const jsTag = '<script src="./overrides/app.js"></script>';
 if (!html.includes(cssTag)) html = html.replace('</head>', `  ${cssTag}\n</head>`);
 if (!html.includes(jsTag)) html = html.replace('</body>', `  ${jsTag}\n</body>`);
+html = html.replace(/<meta name="theme-color" content="[^"]*">/i, '<meta name="theme-color" content="#B792C8">');
 await writeFile(join(OUT, 'index.html'), html);
+
+// Match the installed PWA chrome to the dusty-purple app refresh.
+try {
+  const manifestPath = join(OUT, 'manifest.webmanifest');
+  const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+  manifest.theme_color = '#B792C8';
+  manifest.background_color = '#FAF7FB';
+  await writeFile(manifestPath, JSON.stringify(manifest, null, 2));
+} catch (error) {
+  console.warn('Could not recolor manifest:', error.message);
+}
 
 // Change the cache name on every Git-backed deploy so phones do not stay stuck on an older app shell.
 const swPath = join(OUT, 'service-worker.js');
