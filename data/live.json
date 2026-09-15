@@ -1,0 +1,40 @@
+{
+  "publishedAt": "2026-09-15T07:30:00Z",
+  "source": "Nova • ChatGPT Finances",
+  "accounts": [
+    {"id":"acct_paypal","name":"PayPal","institution":"PayPal","type":"Bank","rawBalance":0.0,"currentBalance":0.0,"connected":true,"snapshot":true,"asOf":"2026-09-15T01:54:17.278389Z"},
+    {"id":"acct_varo_save","name":"Varo Savings","institution":"Varo Bank","type":"Savings","rawBalance":0.0,"currentBalance":0.0,"connected":true,"snapshot":true,"asOf":"2026-09-14T18:15:15.119497Z"},
+    {"id":"acct_varo_check","name":"Varo Checking","institution":"Varo Bank","type":"Bank","rawBalance":0.07,"currentBalance":0.07,"connected":true,"snapshot":true,"asOf":"2026-09-14T18:15:15.119497Z"},
+    {"id":"acct_capone_check","name":"Capital One 360 Checking","institution":"Capital One","type":"Bank","rawBalance":-16.75,"currentBalance":-16.75,"connected":true,"snapshot":true,"asOf":"2026-09-15T07:28:00.767894Z"},
+    {"id":"acct_capone_save","name":"Capital One 360 Performance Savings","institution":"Capital One","type":"Savings","rawBalance":0.09,"currentBalance":0.09,"connected":true,"snapshot":true,"asOf":"2026-09-15T07:28:00.767894Z"},
+    {"id":"acct_marcus","name":"Marcus Savings","institution":"Marcus by Goldman Sachs","type":"Savings","rawBalance":85.29,"currentBalance":85.29,"connected":true,"snapshot":true,"asOf":"2026-09-14T10:12:47.939860Z"},
+    {"id":"acct_chime_save","name":"Chime Savings","institution":"Chime","type":"Savings","rawBalance":104.39,"currentBalance":104.39,"connected":true,"snapshot":true,"asOf":"2026-09-15T05:44:16.091312Z"},
+    {"id":"acct_chime_check","name":"Chime Checking","institution":"Chime","type":"Bank","rawBalance":-33.13,"currentBalance":-33.13,"connected":true,"snapshot":true,"asOf":"2026-09-15T05:44:16.091312Z"},
+    {"id":"acct_ally_save","name":"Ally Savings","institution":"Ally Bank","type":"Savings","rawBalance":0.0,"currentBalance":0.0,"connected":true,"snapshot":true,"asOf":"2026-09-15T02:56:12.602227Z"},
+    {"id":"acct_ally_spend","name":"Ally Spending","institution":"Ally Bank","type":"Bank","rawBalance":23.41,"currentBalance":23.41,"connected":true,"snapshot":true,"asOf":"2026-09-15T02:56:12.602227Z"},
+    {"id":"acct_current","name":"Current","institution":"Current","type":"Bank","rawBalance":0.04,"currentBalance":0.04,"connected":true,"snapshot":true,"asOf":"2026-09-15T03:57:32.247232Z"}
+  ],
+  "bankTransactions": [
+    {"id":"Jk40JNYa9ztpok34Xbn8F5qxDbd4ELt0QOM3v","date":"2026-09-15","account":"Chime account","name":"Transfer from Chime Savings Account","merchant":"Transfer from Chime Savings Account","amount":-34.0,"pending":false,"providerCategory":"Transfers • Savings transfer in"},
+    {"id":"ZDQER9pBqzuy3roQneZJC6QPpRm350t89AKK6","date":"2026-09-15","account":"Chime Savings Account","name":"Chime Transfer","merchant":"Chime transfer","amount":34.0,"pending":false,"providerCategory":"Transfers • Savings transfer out"},
+    {"id":"aKoEmP78vzIwdXMAznpJFYPa15EzVgsKadn34","date":"2026-09-15","account":"Chime account","name":"Transfer from Chime Savings Account","merchant":"Transfer from Chime Savings Account","amount":-23.79,"pending":false,"providerCategory":"Transfers • Savings transfer in"},
+    {"id":"8onZkyBbKpuQN1mLEpgkfbpv3o8yMwUYKLXXL","date":"2026-09-15","account":"Chime Savings Account","name":"Chime Transfer","merchant":"Chime transfer","amount":23.79,"pending":false,"providerCategory":"Transfers • Savings transfer out"},
+    {"id":"rDRM463AOvuzo4rO590ridqRYNLkpkcjQBMygK","date":"2026-09-14","account":"Chime account","name":"Transfer from Chime Savings Account","merchant":"Transfer from Chime Savings Account","amount":-20.0,"pending":false,"providerCategory":"Transfers • Savings transfer in"},
+    {"id":"LvYrJ18ZOzsveDKrQwNKta3RK80RYDFabk1b8","date":"2026-09-14","account":"Chime account","name":"Transfer from Chime Savings Account","merchant":"Transfer from Chime Savings Account","amount":-30.0,"pending":false,"providerCategory":"Transfers • Savings transfer in"},
+    {"id":"rDRM463AOvuzo4rO590ri8Ln7VvnMkTeqxPON","date":"2026-09-14","account":"Chime Savings Account","name":"Chime Transfer","merchant":"Chime transfer","amount":30.0,"pending":false,"providerCategory":"Transfers • Savings transfer out"},
+    {"id":"DP43YE8qZzS6oZLemqpLfnE4Jg34Pju0xjPx0","date":"2026-09-14","account":"Chime account","name":"Uber Eats","merchant":"Uber Eats","amount":2.96,"pending":false,"providerCategory":"Dining & drinks • Delivery"},
+    {"id":"1omj1AwkDpu3goaqvMAaiwgDZRoDdAuEzMwz4","date":"2026-09-14","account":"Chime account","name":"Uber Eats","merchant":"Uber Eats","amount":17.61,"pending":false,"providerCategory":"Dining & drinks • Delivery"},
+    {"id":"33kngOk7mvfYjr6o1g4ni50DEaa5oAH7V59Ex","date":"2026-09-14","account":"PayPal","name":"Payment from PayPal","merchant":"Payment from PayPal Inc.","amount":-1.04,"pending":false,"providerCategory":"Transfers • Other transfer in"},
+    {"id":"B5gx6NgwKEsk8O3B1d0vs137g661R9CdgpAVQ","date":"2026-09-14","account":"PayPal","name":"Uber Eats","merchant":"Uber Eats","amount":19.84,"pending":false,"providerCategory":"Dining & drinks • Delivery"},
+    {"id":"Eq4ybBn35zhmqoDbzE7Di83BVAJjPjhq9pDYv4","date":"2026-09-14","account":"Chime Savings Account","name":"Chime Transfer","merchant":"Chime transfer","amount":20.0,"pending":false,"providerCategory":"Transfers • Savings transfer out"},
+    {"id":"qeQrawQPJYsj4oDLb37RcZMJOooZBECBqYbgn","date":"2026-09-14","account":"PayPal","name":"Uber Eats","merchant":"Uber Eats","amount":4.0,"pending":false,"providerCategory":"Dining & drinks • Delivery"},
+    {"id":"rDRM463AOvuzo4rO590gtKa0LJBOD5HrKQNJB","date":"2026-09-13","account":"Chime account","name":"7-Eleven","merchant":"7-Eleven","amount":10.57,"pending":false,"providerCategory":"Shopping • Convenience stores"},
+    {"id":"aKoEmP78vzIwdXMAznpMTgPedQrZvZU3QZMd54","date":"2026-09-13","account":"Chime account","name":"7-Eleven","merchant":"7-Eleven","amount":-10.57,"pending":false,"providerCategory":"Shopping • Convenience stores"},
+    {"id":"4OZaB0D4qpSg7O8AM0w4teR37A4b1mcD1Vx0R","date":"2026-09-12","account":"Chime account","name":"Afterpay","merchant":"AfterPay","amount":23.28,"pending":false,"providerCategory":"Financial • BNPL payments"},
+    {"id":"mZ8E4PDLb3hZE8y7Lz9rcxXEM56rZrC831M6R","date":"2026-09-12","account":"Chime Savings Account","name":"Chime Transfer","merchant":"Chime transfer","amount":25.0,"pending":false,"providerCategory":"Transfers • Savings transfer out"},
+    {"id":"bkjQ84Z50zt98rEyqQg7H3xwqpzbEbuPgzqZV","date":"2026-09-12","account":"Chime account","name":"Temu","merchant":"Temu","amount":7.33,"pending":false,"providerCategory":"Shopping • Online marketplaces"},
+    {"id":"owkY49Pq7KiYeyvRP4ogfb56BAp9d9CroEBVD","date":"2026-09-12","account":"Chime account","name":"Transfer from Chime Savings Account","merchant":"Transfer from Chime Savings Account","amount":-25.0,"pending":false,"providerCategory":"Transfers • Savings transfer in"},
+    {"id":"jm738d7Yb0FbEZvky69vIkREm5x6Rnu3B9xbv","date":"2026-09-12","account":"PayPal","name":"DoorDash","merchant":"DoorDash","amount":20.82,"pending":false,"providerCategory":"Dining & drinks • Delivery"}
+  ],
+  "accountRules": {"allyFeeFreeOverdraftLimit":100,"chimeSpotMeLimit":40}
+}
