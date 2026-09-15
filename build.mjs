@@ -39,15 +39,20 @@ try {
 } catch {}
 
 await mkdir(join(OUT, 'overrides'), { recursive: true });
-for (const file of ['app.css', 'app.js']) {
+for (const file of ['app.css', 'app.js', 'crochet.css', 'crochet.js']) {
   try { await copyFile(join('overrides', file), join(OUT, 'overrides', file)); } catch {}
 }
 
+const buildId = process.env.COMMIT_REF?.slice(0, 10) || String(Date.now());
 let html = await readFile(join(OUT, 'index.html'), 'utf8');
 const cssTag = '<link rel="stylesheet" href="./overrides/app.css">';
+const crochetCssTag = `<link rel="stylesheet" href="./overrides/crochet.css?v=${buildId}">`;
 const jsTag = '<script src="./overrides/app.js"></script>';
+const crochetJsTag = `<script src="./overrides/crochet.js?v=${buildId}"></script>`;
 if (!html.includes(cssTag)) html = html.replace('</head>', `  ${cssTag}\n</head>`);
+if (!html.includes('overrides/crochet.css')) html = html.replace('</head>', `  ${crochetCssTag}\n</head>`);
 if (!html.includes(jsTag)) html = html.replace('</body>', `  ${jsTag}\n</body>`);
+if (!html.includes('overrides/crochet.js')) html = html.replace('</body>', `  ${crochetJsTag}\n</body>`);
 html = html.replace(/<meta name="theme-color" content="[^"]*">/i, '<meta name="theme-color" content="#B792C8">');
 await writeFile(join(OUT, 'index.html'), html);
 
@@ -65,7 +70,6 @@ try {
 // Change the cache name on every Git-backed deploy so phones do not stay stuck on an older app shell.
 const swPath = join(OUT, 'service-worker.js');
 let sw = await readFile(swPath, 'utf8');
-const buildId = process.env.COMMIT_REF?.slice(0, 10) || String(Date.now());
 sw = sw.replace(/const CACHE='[^']*';/, `const CACHE='house-of-achen-git-${buildId}';`);
 await writeFile(swPath, sw);
 
