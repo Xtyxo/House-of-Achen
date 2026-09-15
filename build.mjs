@@ -39,7 +39,7 @@ try {
 } catch {}
 
 await mkdir(join(OUT, 'overrides'), { recursive: true });
-for (const file of ['app.css', 'app.js', 'crochet.css', 'crochet.js']) {
+for (const file of ['app.css', 'app.js', 'crochet.css', 'crochet.js', 'finance.css', 'finance.js']) {
   try { await copyFile(join('overrides', file), join(OUT, 'overrides', file)); } catch {}
 }
 
@@ -47,21 +47,25 @@ const buildId = process.env.COMMIT_REF?.slice(0, 10) || String(Date.now());
 let html = await readFile(join(OUT, 'index.html'), 'utf8');
 const cssTag = '<link rel="stylesheet" href="./overrides/app.css">';
 const crochetCssTag = `<link rel="stylesheet" href="./overrides/crochet.css?v=${buildId}">`;
+const financeCssTag = `<link rel="stylesheet" href="./overrides/finance.css?v=${buildId}">`;
 const jsTag = '<script src="./overrides/app.js"></script>';
 const crochetJsTag = `<script src="./overrides/crochet.js?v=${buildId}"></script>`;
+const financeJsTag = `<script src="./overrides/finance.js?v=${buildId}"></script>`;
 if (!html.includes(cssTag)) html = html.replace('</head>', `  ${cssTag}\n</head>`);
 if (!html.includes('overrides/crochet.css')) html = html.replace('</head>', `  ${crochetCssTag}\n</head>`);
+if (!html.includes('overrides/finance.css')) html = html.replace('</head>', `  ${financeCssTag}\n</head>`);
 if (!html.includes(jsTag)) html = html.replace('</body>', `  ${jsTag}\n</body>`);
 if (!html.includes('overrides/crochet.js')) html = html.replace('</body>', `  ${crochetJsTag}\n</body>`);
-html = html.replace(/<meta name="theme-color" content="[^"]*">/i, '<meta name="theme-color" content="#B792C8">');
+if (!html.includes('overrides/finance.js')) html = html.replace('</body>', `  ${financeJsTag}\n</body>`);
+html = html.replace(/<meta name="theme-color" content="[^"]*">/i, '<meta name="theme-color" content="#29224D">');
 await writeFile(join(OUT, 'index.html'), html);
 
-// Match the installed PWA chrome to the dusty-purple app refresh.
+// Match installed PWA chrome to the premium midnight/lavender refresh.
 try {
   const manifestPath = join(OUT, 'manifest.webmanifest');
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
-  manifest.theme_color = '#B792C8';
-  manifest.background_color = '#FAF7FB';
+  manifest.theme_color = '#29224D';
+  manifest.background_color = '#FAF7FF';
   await writeFile(manifestPath, JSON.stringify(manifest, null, 2));
 } catch (error) {
   console.warn('Could not recolor manifest:', error.message);
