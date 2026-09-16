@@ -21,6 +21,7 @@ const approvedCatAssets = [
   'assets/cats/diana-full.webp',
   'assets/cats/diana-head.webp',
 ];
+const appIconAssets = ['icon-192.png', 'icon-512.png'];
 
 async function ensureParent(file) {
   await mkdir(dirname(join(OUT, file)), { recursive: true });
@@ -51,6 +52,12 @@ for (const file of approvedCatAssets) {
   await copyFile(file, join(OUT, file));
 }
 
+// Keep the approved floral crescent icon under Git control and overwrite the older mirrored PWA icons.
+for (const file of appIconAssets) {
+  await access(file);
+  await copyFile(file, join(OUT, file));
+}
+
 await mkdir(join(OUT, 'overrides'), { recursive: true });
 for (const file of ['app.css', 'app.js', 'crochet.css', 'crochet.js', 'finance.css', 'finance.js']) {
   try { await copyFile(join('overrides', file), join(OUT, 'overrides', file)); } catch {}
@@ -73,6 +80,11 @@ html = html.replace(
   "document.getElementById('lunaIconMount').innerHTML=`<img class=\"hoa-cat hoa-cat-head hoa-luna-head\" src=\"./assets/cats/luna-head.webp\" alt=\"Luna, black cat with soft green eyes and a gold crescent moon\" draggable=\"false\" decoding=\"async\">`;"
 );
 
+// Use the floral crescent as the browser/PWA icon instead of the previous SVG icon.
+html = html.replaceAll('icon.svg', 'icon-512.png');
+const appleIconTag = '<link rel="apple-touch-icon" href="./icon-512.png">';
+if (!html.includes('apple-touch-icon')) html = html.replace('</head>', `  ${appleIconTag}\n</head>`);
+
 const cssTag = '<link rel="stylesheet" href="./overrides/app.css">';
 const crochetCssTag = `<link rel="stylesheet" href="./overrides/crochet.css?v=${buildId}">`;
 const financeCssTag = `<link rel="stylesheet" href="./overrides/finance.css?v=${buildId}">`;
@@ -88,15 +100,18 @@ if (!html.includes('overrides/finance.js')) html = html.replace('</body>', `  ${
 html = html.replace(/<meta name="theme-color" content="[^"]*">/i, '<meta name="theme-color" content="#29224D">');
 await writeFile(join(OUT, 'index.html'), html);
 
-// Match installed PWA chrome to the premium midnight/lavender refresh.
+// Match installed PWA chrome to the premium midnight/lavender refresh and point it at the new icon.
 try {
   const manifestPath = join(OUT, 'manifest.webmanifest');
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
   manifest.theme_color = '#29224D';
   manifest.background_color = '#FAF7FF';
+  manifest.icons = [
+    { src: './icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+  ];
   await writeFile(manifestPath, JSON.stringify(manifest, null, 2));
 } catch (error) {
-  console.warn('Could not recolor manifest:', error.message);
+  console.warn('Could not update manifest:', error.message);
 }
 
 // Change the cache name on every Git-backed deploy so phones do not stay stuck on an older app shell.
