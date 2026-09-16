@@ -15,6 +15,12 @@ const mirrored = [
   'beauty-babe/Its_Beauty_Babe_Mini_Beauty_Bible_Aug_2026.pdf',
   ...pages,
 ];
+const approvedCatAssets = [
+  'assets/cats/luna-full.webp',
+  'assets/cats/luna-head.webp',
+  'assets/cats/diana-full.webp',
+  'assets/cats/diana-head.webp',
+];
 
 async function ensureParent(file) {
   await mkdir(dirname(join(OUT, file)), { recursive: true });
@@ -38,6 +44,13 @@ try {
   await copyFile('data/live.json', join(OUT, 'data/live.json'));
 } catch {}
 
+// Approved final Luna/Diana art lives in GitHub so production does not depend on a generated-image URL.
+for (const file of approvedCatAssets) {
+  await access(file);
+  await ensureParent(file);
+  await copyFile(file, join(OUT, file));
+}
+
 await mkdir(join(OUT, 'overrides'), { recursive: true });
 for (const file of ['app.css', 'app.js', 'crochet.css', 'crochet.js', 'finance.css', 'finance.js']) {
   try { await copyFile(join('overrides', file), join(OUT, 'overrides', file)); } catch {}
@@ -45,6 +58,21 @@ for (const file of ['app.css', 'app.js', 'crochet.css', 'crochet.js', 'finance.c
 
 const buildId = process.env.COMMIT_REF?.slice(0, 10) || String(Date.now());
 let html = await readFile(join(OUT, 'index.html'), 'utf8');
+
+// Remove the legacy hand-drawn cat SVG function bodies from the mirrored production source itself.
+// The Git override below still owns the runtime render, but this prevents an old face from flashing
+// before app.js loads and makes the deployed source clean during audits.
+const lunaBootstrap = `function lunaSvg(){return\`<img class="hoa-cat hoa-cat-full hoa-luna" src="./assets/cats/luna-full.webp" alt="Luna, black cat with soft green eyes and a gold crescent moon" draggable="false" decoding="async">\`}`;
+const dianaBootstrap = `function dianaSvg(){return\`<img class="hoa-cat hoa-cat-full hoa-diana" src="./assets/cats/diana-full.webp" alt="Diana, gray tabby with a white muzzle and chest, soft green eyes, pearl necklace and pink heart pendant" draggable="false" decoding="async">\`}`;
+const lunaLegacyPattern = /function lunaSvg\(\)\{return`<svg class="cat-svg"[\s\S]*?<\/svg>`\}/;
+const dianaLegacyPattern = /function dianaSvg\(\)\{return`<svg class="cat-svg"[\s\S]*?<\/svg>`\}/;
+html = html.replace(lunaLegacyPattern, lunaBootstrap);
+html = html.replace(dianaLegacyPattern, dianaBootstrap);
+html = html.replace(
+  "document.getElementById('lunaIconMount').innerHTML=lunaSvg();",
+  "document.getElementById('lunaIconMount').innerHTML=`<img class=\"hoa-cat hoa-cat-head hoa-luna-head\" src=\"./assets/cats/luna-head.webp\" alt=\"Luna, black cat with soft green eyes and a gold crescent moon\" draggable=\"false\" decoding=\"async\">`;"
+);
+
 const cssTag = '<link rel="stylesheet" href="./overrides/app.css">';
 const crochetCssTag = `<link rel="stylesheet" href="./overrides/crochet.css?v=${buildId}">`;
 const financeCssTag = `<link rel="stylesheet" href="./overrides/finance.css?v=${buildId}">`;
