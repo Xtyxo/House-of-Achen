@@ -1,0 +1,102 @@
+/* House of Achen Dream Dashboard — responsive translation of the approved dashboard artwork. */
+:root{
+  --dream-night:#17172f;
+  --dream-night2:#2a2350;
+  --dream-pink:#f7bdd7;
+  --dream-rose:#d85b9b;
+  --dream-lav:#d8c9ff;
+  --dream-peri:#c7d5ff;
+  --dream-blue:#dcecff;
+  --dream-peach:#ffe2d6;
+  --dream-mint:#dff3e7;
+  --dream-gold:#d9b56f;
+  --dream-ink:#27243b;
+  --dream-muted:#756d84;
+  --dream-line:rgba(83,59,111,.14);
+}
+body.hoa-dream-home .topbar{display:none!important}
+body.hoa-dream-home .content{padding-top:16px}
+.hoa-dream-dashboard{display:grid;gap:14px;max-width:1480px;margin:0 auto;color:var(--dream-ink)}
+.hoa-dream-banner{position:relative;min-height:250px;overflow:hidden;border-radius:28px;border:1px solid rgba(218,181,111,.38);box-shadow:0 22px 54px rgba(44,32,76,.18);background:
+  radial-gradient(circle at 78% 18%,rgba(255,255,255,.35) 0 1px,transparent 2px),
+  radial-gradient(circle at 65% 30%,rgba(255,255,255,.28) 0 1px,transparent 2px),
+  radial-gradient(circle at 88% 52%,rgba(255,255,255,.32) 0 1px,transparent 2px),
+  radial-gradient(circle at 46% 15%,rgba(247,189,215,.38),transparent 24%),
+  radial-gradient(circle at 83% 5%,rgba(216,201,255,.50),transparent 28%),
+  linear-gradient(115deg,#22203f 0%,#4d376c 35%,#92577d 64%,#d28eae 100%)}
+.hoa-dream-banner:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(16,14,39,.26),transparent 44%,rgba(255,255,255,.04));}
+.hoa-dream-banner-copy{position:absolute;z-index:3;left:clamp(28px,4vw,58px);top:50%;transform:translateY(-50%);max-width:46%;color:white;text-shadow:0 3px 18px rgba(27,18,46,.25)}
+.hoa-dream-banner-copy>span{font:500 clamp(22px,2.2vw,34px) Georgia,serif}
+.hoa-dream-banner-copy h1{margin:-2px 0 2px;font:500 clamp(60px,7.3vw,108px)/.93 "Brush Script MT","Segoe Script",cursive;color:#fff7fb;letter-spacing:.01em}
+.hoa-dream-banner-copy p{margin:10px 0 0;font:500 clamp(13px,1.35vw,19px) Georgia,serif;color:#f8edf6}
+.hoa-dream-banner-pets{position:absolute;z-index:2;right:8%;bottom:-8px;width:min(47%,650px);height:94%;display:flex;align-items:flex-end;justify-content:center}
+.hoa-dream-pet{display:grid;place-items:end center;filter:drop-shadow(0 18px 18px rgba(25,17,44,.22))}
+.hoa-dream-pet img{width:100%;height:100%;object-fit:contain;object-position:center bottom;display:block}
+.hoa-dream-pet.luna{width:58%;height:82%;margin-right:-9%;z-index:2}
+.hoa-dream-pet.diana{width:48%;height:88%;z-index:1}
+.hoa-dream-date{position:absolute;z-index:4;right:18px;top:16px;min-width:178px;padding:10px 14px;border-radius:18px;background:rgba(114,70,135,.46);border:1px solid rgba(255,255,255,.4);color:#fff;text-align:center;backdrop-filter:blur(12px);box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}
+.hoa-dream-date b,.hoa-dream-date span,.hoa-dream-date small{display:block}.hoa-dream-date b{font-size:12px}.hoa-dream-date span{font-size:12px;margin-top:5px}.hoa-dream-date small{font-size:10px;color:#f8eaf3;margin-top:3px}
+.hoa-banner-menu{display:none;position:absolute;z-index:8;left:12px;top:12px;width:40px;height:40px;border:1px solid rgba(255,255,255,.34);border-radius:13px;background:rgba(30,25,62,.42);color:#fff;backdrop-filter:blur(10px);align-items:center;justify-content:center}
+.hoa-menu-bars,.hoa-menu-bars:before,.hoa-menu-bars:after{position:absolute;width:18px;height:2px;border-radius:4px;background:#fff;left:10px}
+.hoa-menu-bars{top:19px}.hoa-menu-bars:before,.hoa-menu-bars:after{content:"";left:0}.hoa-menu-bars:before{top:-6px}.hoa-menu-bars:after{top:6px}
+
+.hoa-dream-panel,.hoa-dream-chart-card{border:1px solid var(--dream-line);border-radius:22px;background:rgba(255,255,255,.91);box-shadow:0 12px 34px rgba(70,48,99,.08),inset 0 1px 0 rgba(255,255,255,.95)}
+.hoa-dream-panel{padding:15px}
+.hoa-dream-section-head,.hoa-dream-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hoa-dream-section-head{padding:0 4px 11px}
+.hoa-dream-section-head h2,.hoa-dream-card-head h2{margin:0;color:#2b2850;font:650 19px/1.1 Georgia,serif}
+.hoa-dream-section-head p,.hoa-dream-card-head p{margin:4px 0 0;color:var(--dream-muted);font-size:11px;line-height:1.35}
+.hoa-dream-section-head>button{border:0;background:transparent;color:#7b4d8b;font-size:11px;font-weight:800;padding:7px 9px}
+.hoa-dream-account-strip,.hoa-dream-tile-strip{display:flex;gap:10px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;padding:2px 2px 4px;scrollbar-width:thin}
+.hoa-dream-account{scroll-snap-align:start;flex:0 0 205px;min-height:108px;text-align:left;border:1px solid rgba(82,61,115,.10);border-radius:17px;padding:12px;background:#fff;color:var(--dream-ink);display:grid;grid-template-columns:auto 1fr;column-gap:9px;align-items:start;box-shadow:0 7px 18px rgba(68,46,99,.06)}
+.hoa-dream-account.tone-1{background:linear-gradient(145deg,#fff,#fde8f1)}.hoa-dream-account.tone-2{background:linear-gradient(145deg,#fff,#eee9ff)}.hoa-dream-account.tone-3{background:linear-gradient(145deg,#fff,#eaf3ff)}.hoa-dream-account.tone-4{background:linear-gradient(145deg,#fff,#eaf7ef)}.hoa-dream-account.tone-5{background:linear-gradient(145deg,#fff,#fff0e8)}.hoa-dream-account.tone-6{background:linear-gradient(145deg,#fff,#f5eafa)}
+.hoa-dream-account-icon{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(145deg,#3d2b70,#91519a);color:white;box-shadow:0 7px 15px rgba(66,39,102,.18)}
+.hoa-dream-account-copy{min-width:0}.hoa-dream-account-copy b,.hoa-dream-account-copy small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hoa-dream-account-copy b{font-size:12px}.hoa-dream-account-copy small{color:#7c7285;font-size:9.5px;margin-top:3px}
+.hoa-dream-account strong{grid-column:1/-1;font:700 23px Georgia,serif;color:#2f2948;margin-top:8px}.hoa-dream-account em{grid-column:1/-1;font-style:normal;font-size:9px;color:#795886;margin-top:2px}
+.hoa-dream-account.hoa-dream-total{background:linear-gradient(145deg,#ffe5ef,#f2e5ff);border-color:#edc7db}.hoa-dream-total .hoa-dream-account-icon{background:linear-gradient(145deg,#bc4d87,#dc789e)}
+.hoa-dream-empty{padding:22px;border:1px dashed #d9cae3;border-radius:15px;color:#817688;text-align:center;font-size:12px}
+
+.hoa-dream-money-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.hoa-dream-money-strip button{border:1px solid var(--dream-line);border-radius:17px;background:rgba(255,255,255,.9);padding:12px 14px;text-align:left;box-shadow:0 8px 22px rgba(74,51,103,.07)}
+.hoa-dream-money-strip button:nth-child(1){background:linear-gradient(145deg,#fff,#f9e5ef)}.hoa-dream-money-strip button:nth-child(2){background:linear-gradient(145deg,#fff,#f0ebff)}.hoa-dream-money-strip button:nth-child(3){background:linear-gradient(145deg,#fff,#eaf3ff)}
+.hoa-dream-money-strip span{display:block;color:#786c80;font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:850}.hoa-dream-money-strip b{display:block;color:#302846;font:700 21px Georgia,serif;margin-top:4px}
+
+.hoa-dream-charts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.hoa-dream-chart-card{padding:16px;min-width:0}.hoa-dream-card-head{margin-bottom:8px}.hoa-dream-card-head>svg{color:#8e5997;flex:0 0 auto}
+.hoa-dream-chart-wrap{height:245px;min-width:0}.hoa-dream-chart-wrap canvas{width:100%!important;height:100%!important;display:block}
+
+.hoa-dream-explore{padding-bottom:12px}.hoa-dream-tile{scroll-snap-align:start;flex:0 0 132px;min-height:142px;border:1px solid rgba(78,59,111,.10);border-radius:15px;padding:12px 9px;text-align:center;color:#302a4d;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:7px;box-shadow:0 6px 16px rgba(77,54,108,.05)}
+.hoa-dream-tile.rose{background:linear-gradient(165deg,#fde7f1,#fff)}.hoa-dream-tile.peach{background:linear-gradient(165deg,#ffe8dd,#fff)}.hoa-dream-tile.blue{background:linear-gradient(165deg,#e5efff,#fff)}.hoa-dream-tile.lav{background:linear-gradient(165deg,#eee8ff,#fff)}.hoa-dream-tile.mint{background:linear-gradient(165deg,#e4f5eb,#fff)}
+.hoa-dream-tile-icon{width:45px;height:45px;border-radius:13px;display:grid;place-items:center;background:rgba(111,74,144,.10);color:#865694}.hoa-dream-tile b{font-size:11px;line-height:1.25}.hoa-dream-tile small{font-size:9.3px;line-height:1.35;color:#766d83}
+
+.hoa-dream-soft-row{display:grid;grid-template-columns:1.15fr 1.35fr 1.55fr .9fr;gap:10px}
+.hoa-dream-soft-card{min-width:0;border:1px solid var(--dream-line);border-radius:17px;background:rgba(255,255,255,.9);padding:12px;display:flex;align-items:flex-start;gap:9px;color:#332d49;box-shadow:0 8px 21px rgba(71,51,96,.06);text-align:left}
+.hoa-dream-soft-card>span{width:31px;height:31px;flex:0 0 auto;border-radius:10px;display:grid;place-items:center;background:#eee7ff;color:#79548a}.hoa-dream-soft-card small{display:block;color:#7d7185;font-size:9px;text-transform:uppercase;letter-spacing:.06em;font-weight:850}.hoa-dream-soft-card b{display:block;font:600 12px/1.4 Georgia,serif;margin-top:4px}.hoa-dream-soft-grow{min-width:0;flex:1}.hoa-dream-moods{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}.hoa-dream-mood{border:1px solid #e5d9ec;border-radius:999px;background:#fff;padding:4px 7px;font-size:8.5px;color:#675b70}.hoa-dream-mood.active{background:#e8d8f2;border-color:#c8aada;color:#61436d;font-weight:800}.hoa-dream-soft-card textarea{width:100%;min-height:42px;resize:vertical;border:0!important;border-bottom:1px solid #e8ddec!important;border-radius:0!important;background:transparent!important;padding:5px 0!important;font-size:10px;box-shadow:none!important}.hoa-dream-soft-card.music{cursor:pointer}.hoa-dream-soft-card.affirmation{background:linear-gradient(145deg,#27213f,#574067);color:#fff}.hoa-dream-soft-card.affirmation small{color:#d7cce0}.hoa-dream-soft-card.affirmation>span{background:rgba(255,255,255,.12);color:#f7d99d}
+
+.hoa-dream-bottom-tabs{display:none}
+@media(max-width:1100px){
+  .hoa-dream-banner{min-height:235px}.hoa-dream-banner-copy{max-width:48%}.hoa-dream-banner-pets{right:5%;width:50%}.hoa-dream-soft-row{grid-template-columns:1fr 1fr}.hoa-dream-chart-wrap{height:225px}
+}
+@media(max-width:780px){
+  body{padding-bottom:env(safe-area-inset-bottom)}
+  body.hoa-dream-home .content,.content{padding:12px 11px calc(112px + env(safe-area-inset-bottom))!important}
+  .hoa-dream-dashboard{gap:11px}
+  .hoa-dream-banner{min-height:230px;border-radius:22px}
+  .hoa-banner-menu{display:flex}
+  .hoa-dream-banner-copy{left:18px;top:72px;transform:none;max-width:62%}
+  .hoa-dream-banner-copy>span{font-size:17px}.hoa-dream-banner-copy h1{font-size:58px;line-height:.88}.hoa-dream-banner-copy p{font-size:11px;line-height:1.35;max-width:200px}
+  .hoa-dream-banner-pets{width:66%;right:-9%;height:76%;bottom:-5px}.hoa-dream-pet.luna{width:60%}.hoa-dream-pet.diana{width:49%}
+  .hoa-dream-date{right:10px;top:10px;min-width:128px;padding:7px 9px;border-radius:14px}.hoa-dream-date b,.hoa-dream-date span{font-size:9px}.hoa-dream-date small{font-size:8px}
+  .hoa-dream-panel,.hoa-dream-chart-card{border-radius:18px}.hoa-dream-panel{padding:12px}.hoa-dream-section-head h2,.hoa-dream-card-head h2{font-size:17px}.hoa-dream-section-head p,.hoa-dream-card-head p{font-size:10px}
+  .hoa-dream-account{flex-basis:162px;min-height:101px;padding:10px}.hoa-dream-account strong{font-size:20px}.hoa-dream-account-icon{width:32px;height:32px}
+  .hoa-dream-money-strip{grid-template-columns:repeat(3,minmax(116px,1fr));overflow-x:auto;padding-bottom:3px}.hoa-dream-money-strip button{min-width:116px}.hoa-dream-money-strip b{font-size:18px}
+  .hoa-dream-charts{grid-template-columns:1fr}.hoa-dream-chart-wrap{height:225px}
+  .hoa-dream-tile{flex-basis:116px;min-height:130px;padding:10px 7px}.hoa-dream-tile-icon{width:41px;height:41px}.hoa-dream-tile b{font-size:10px}.hoa-dream-tile small{font-size:8.7px}
+  .hoa-dream-soft-row{grid-template-columns:1fr}.hoa-dream-soft-card{min-height:68px}
+  .hoa-dream-bottom-tabs{position:fixed;display:grid;grid-template-columns:repeat(5,1fr);left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));z-index:85;border:1px solid rgba(255,255,255,.52);border-radius:22px;padding:6px;background:rgba(28,25,58,.92);box-shadow:0 18px 42px rgba(27,20,53,.3);backdrop-filter:blur(18px)}
+  .hoa-dream-bottom-tabs button{min-width:0;border:0;border-radius:16px;background:transparent;color:#d7d0e8;padding:7px 3px 6px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:8.5px;font-weight:700}.hoa-dream-bottom-tabs button svg{display:block}.hoa-dream-bottom-tabs button.active{background:linear-gradient(145deg,#f4bdd7,#d8c9ff);color:#34294b;box-shadow:0 7px 14px rgba(13,10,31,.18)}
+  .sidebar{z-index:220!important}.luna-float,.nova-float{bottom:calc(88px + env(safe-area-inset-bottom))!important;z-index:75}.luna-bubble{bottom:calc(96px + env(safe-area-inset-bottom))!important}
+}
+@media(max-width:480px){
+  .hoa-dream-banner{min-height:215px}.hoa-dream-banner-copy{top:68px}.hoa-dream-banner-copy h1{font-size:53px}.hoa-dream-banner-pets{width:70%;right:-13%;height:72%}.hoa-dream-date{min-width:116px}.hoa-dream-money-strip span{font-size:8.5px}.hoa-dream-money-strip b{font-size:17px}.hoa-dream-chart-wrap{height:210px}
+}
