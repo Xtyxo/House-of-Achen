@@ -4,7 +4,7 @@ import sharp from 'sharp';
 
 const ORIGIN = 'https://house-of-achen-life-hq.netlify.app';
 const OUT = 'dist';
-const PWA_VERSION = 'house-of-achen-pwa-v4';
+const PWA_VERSION = 'house-of-achen-pwa-v5';
 const PWA_BG = '#FAF7FF';
 const pages = Array.from({ length: 20 }, (_, i) => `beauty-babe/pages/page-${String(i + 1).padStart(2, '0')}.png`);
 const mirrored = [
@@ -24,7 +24,7 @@ const approvedCatAssets = [
   'assets/cats/diana-full.webp',
   'assets/cats/diana-head.webp',
 ];
-const appIconAssets = ['icon-192.png', 'icon-512.png'];
+const appIconAssets = ['icon-192.png'];
 const overrideFiles = ['app.css', 'app.js', 'crochet.css', 'crochet.js', 'finance.css', 'finance.js', 'dashboard.css', 'dashboard.js'];
 
 async function ensureParent(file) {
@@ -69,13 +69,20 @@ async function rgbaIcon(source, size, target) {
     .toFile(join(OUT, target));
 }
 
+const iconSourceMeta = await sharp('icon-192.png').metadata();
+if (iconSourceMeta.format !== 'png' || iconSourceMeta.width !== 192 || iconSourceMeta.height !== 192) {
+  throw new Error(`Invalid app icon source: expected a complete 192x192 PNG, got ${iconSourceMeta.format || 'unknown'} ${iconSourceMeta.width || '?'}x${iconSourceMeta.height || '?'}`);
+}
+
+await rgbaIcon('icon-192.png', 192, 'icon-192.png');
+await rgbaIcon('icon-192.png', 512, 'icon-512.png');
 await rgbaIcon('icon-192.png', 192, 'pwa-icon-192.png');
-await rgbaIcon('icon-512.png', 512, 'pwa-icon-512.png');
+await rgbaIcon('icon-192.png', 512, 'pwa-icon-512.png');
 await rgbaIcon('icon-192.png', 96, 'favicon.png');
-await rgbaIcon('icon-512.png', 180, 'apple-touch-icon.png');
+await rgbaIcon('icon-192.png', 180, 'apple-touch-icon.png');
 
 // Genuine Android maskable icon: preserve the floral artwork inside the central safe zone.
-const maskableArtwork = await sharp('icon-512.png')
+const maskableArtwork = await sharp('icon-192.png')
   .resize(380, 380, { fit: 'contain', background: { r: 250, g: 247, b: 255, alpha: 0 } })
   .ensureAlpha()
   .png({ palette: false, compressionLevel: 9 })
