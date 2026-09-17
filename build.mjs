@@ -4,7 +4,7 @@ import sharp from 'sharp';
 
 const ORIGIN = 'https://house-of-achen-life-hq.netlify.app';
 const OUT = 'dist';
-const PWA_VERSION = 'house-of-achen-pwa-v6';
+const PWA_VERSION = 'house-of-achen-pwa-v7';
 const PWA_BG = '#FAF7FF';
 const pages = Array.from({ length: 20 }, (_, i) => `beauty-babe/pages/page-${String(i + 1).padStart(2, '0')}.png`);
 const mirrored = [
@@ -70,8 +70,8 @@ async function rgbaIcon(source, size, target) {
 }
 
 const iconSourceMeta = await sharp('icon-192.png').metadata();
-if (iconSourceMeta.format !== 'png' || iconSourceMeta.width !== 128 || iconSourceMeta.height !== 128) {
-  throw new Error(`Invalid app icon source: expected a complete 128x128 PNG, got ${iconSourceMeta.format || 'unknown'} ${iconSourceMeta.width || '?'}x${iconSourceMeta.height || '?'}`);
+if (iconSourceMeta.format !== 'png' || iconSourceMeta.width !== 96 || iconSourceMeta.height !== 96) {
+  throw new Error(`Invalid app icon source: expected a complete 96x96 PNG, got ${iconSourceMeta.format || 'unknown'} ${iconSourceMeta.width || '?'}x${iconSourceMeta.height || '?'}`);
 }
 
 await rgbaIcon('icon-192.png', 192, 'icon-192.png');
