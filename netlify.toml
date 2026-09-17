@@ -5,6 +5,12 @@
 [build.environment]
   NODE_VERSION = "22"
 
+[[redirects]]
+  from = "/favicon.ico"
+  to = "/favicon.png"
+  status = 200
+  force = true
+
 [[headers]]
   for = "/"
   [headers.values]
@@ -18,7 +24,8 @@
 [[headers]]
   for = "/manifest.webmanifest"
   [headers.values]
-    Cache-Control = "no-cache, must-revalidate"
+    Cache-Control = "no-store, no-cache, must-revalidate, max-age=0"
+    Content-Type = "application/manifest+json; charset=utf-8"
 
 [[headers]]
   for = "/service-worker.js"
@@ -28,12 +35,37 @@
 [[headers]]
   for = "/icon-192.png"
   [headers.values]
-    Cache-Control = "no-cache, must-revalidate"
+    Cache-Control = "no-store, no-cache, must-revalidate, max-age=0"
 
 [[headers]]
   for = "/icon-512.png"
   [headers.values]
-    Cache-Control = "no-cache, must-revalidate"
+    Cache-Control = "no-store, no-cache, must-revalidate, max-age=0"
+
+[[headers]]
+  for = "/pwa-icon-192.png"
+  [headers.values]
+    Cache-Control = "no-store, no-cache, must-revalidate, max-age=0"
+
+[[headers]]
+  for = "/pwa-icon-512.png"
+  [headers.values]
+    Cache-Control = "no-store, no-cache, must-revalidate, max-age=0"
+
+[[headers]]
+  for = "/pwa-maskable-512.png"
+  [headers.values]
+    Cache-Control = "no-store, no-cache, must-revalidate, max-age=0"
+
+[[headers]]
+  for = "/favicon.png"
+  [headers.values]
+    Cache-Control = "no-store, no-cache, must-revalidate, max-age=0"
+
+[[headers]]
+  for = "/apple-touch-icon.png"
+  [headers.values]
+    Cache-Control = "no-store, no-cache, must-revalidate, max-age=0"
 
 [[headers]]
   for = "/data/live.json"
