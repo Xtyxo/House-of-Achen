@@ -5,6 +5,135 @@ window.HOUSE_OF_ACHEN_GIT_OVERRIDES = true;
 const HOA_PURPLE = '#B792C8';
 document.querySelector('meta[name="theme-color"]')?.setAttribute('content', HOA_PURPLE);
 
+// Mobile app-shell hardening. The base site was originally desktop-first, so make sure
+// the installed app always behaves like a phone app instead of exposing a giant canvas.
+(function installMobileAppShellFix(){
+  let viewport=document.querySelector('meta[name="viewport"]');
+  if(!viewport){
+    viewport=document.createElement('meta');
+    viewport.name='viewport';
+    document.head.appendChild(viewport);
+  }
+  viewport.setAttribute('content','width=device-width, initial-scale=1, viewport-fit=cover');
+
+  if(document.getElementById('hoa-mobile-shell-fix'))return;
+  const style=document.createElement('style');
+  style.id='hoa-mobile-shell-fix';
+  style.textContent=`
+    html,body{
+      width:100%;
+      max-width:100%;
+      min-width:0;
+      overflow-x:hidden;
+    }
+    *,*::before,*::after{box-sizing:border-box}
+
+    @media(max-width:780px){
+      html,body{width:100%!important;max-width:100%!important;min-width:0!important;overflow-x:hidden!important}
+      body{margin:0!important}
+
+      .app,.app-shell,.shell,.layout,.main,.main-content,.content-wrap,.content,#content{
+        min-width:0!important;
+        max-width:100%!important;
+      }
+      .main,.main-content,.content-wrap,.content{
+        width:100%!important;
+        margin-left:0!important;
+        margin-right:0!important;
+        left:auto!important;
+        right:auto!important;
+        transform:none!important;
+      }
+      .content,#content{overflow-x:hidden!important}
+      .topbar{
+        width:100%!important;
+        max-width:100vw!important;
+        margin-left:0!important;
+        left:0!important;
+        right:0!important;
+      }
+
+      .sidebar{
+        position:fixed!important;
+        top:0!important;
+        bottom:0!important;
+        left:0!important;
+        right:auto!important;
+        width:min(86vw,320px)!important;
+        max-width:86vw!important;
+        transform:translateX(-105%)!important;
+        transition:transform .2s ease!important;
+      }
+      .sidebar.open{transform:translateX(0)!important}
+
+      .hoa-dream-dashboard,
+      .hoa-dream-dashboard>*,
+      .hoa-dream-banner,
+      .hoa-dream-panel,
+      .hoa-dream-chart-card,
+      .hoa-dream-charts,
+      .hoa-dream-soft-row,
+      .hoa-dream-money-strip{
+        width:100%!important;
+        max-width:100%!important;
+        min-width:0!important;
+      }
+
+      .hoa-dream-account-strip,.hoa-dream-tile-strip{
+        width:100%!important;
+        max-width:100%!important;
+        min-width:0!important;
+        overflow-x:auto!important;
+        overflow-y:hidden!important;
+        -webkit-overflow-scrolling:touch;
+        overscroll-behavior-x:contain;
+      }
+
+      .hoa-dream-money-strip{
+        grid-template-columns:repeat(3,minmax(0,1fr))!important;
+        gap:7px!important;
+        overflow:visible!important;
+      }
+      .hoa-dream-money-strip button{
+        min-width:0!important;
+        width:auto!important;
+        padding:10px 8px!important;
+      }
+      .hoa-dream-money-strip span{font-size:8px!important;letter-spacing:.05em!important}
+      .hoa-dream-money-strip b{font-size:16px!important;white-space:nowrap}
+
+      img,canvas,svg{max-width:100%}
+      .hoa-dream-chart-wrap canvas{min-width:0!important}
+    }
+
+    @media(max-width:480px){
+      .hoa-dream-banner{min-height:190px!important}
+      .hoa-dream-banner-copy{left:14px!important;top:58px!important;max-width:54%!important}
+      .hoa-dream-banner-copy>span{font-size:15px!important}
+      .hoa-dream-banner-copy h1{font-size:46px!important;line-height:.9!important}
+      .hoa-dream-banner-copy p{font-size:9.5px!important;line-height:1.3!important;max-width:150px!important}
+      .hoa-dream-banner-pets{width:62%!important;right:-9%!important;height:68%!important;bottom:-3px!important}
+      .hoa-dream-date{right:8px!important;top:8px!important;min-width:104px!important;padding:6px 7px!important}
+      .hoa-dream-date b,.hoa-dream-date span{font-size:8px!important}
+      .hoa-dream-date small{font-size:7px!important}
+      .hoa-dream-money-strip{gap:5px!important}
+      .hoa-dream-money-strip button{padding:9px 5px!important}
+      .hoa-dream-money-strip span{font-size:7px!important;letter-spacing:.025em!important}
+      .hoa-dream-money-strip b{font-size:14px!important}
+    }
+  `;
+  document.head.appendChild(style);
+})();
+
+function hoaNormalizeMobileViewport(){
+  if(window.innerWidth>780)return;
+  document.documentElement.scrollLeft=0;
+  document.body.scrollLeft=0;
+  if(window.scrollX!==0)window.scrollTo(0,window.scrollY);
+}
+window.addEventListener('load',()=>requestAnimationFrame(hoaNormalizeMobileViewport),{once:true});
+window.addEventListener('resize',hoaNormalizeMobileViewport,{passive:true});
+
 // Approved final companion assets. Keep these as the single source of truth.
 const HOA_CAT_ASSETS = Object.freeze({
   lunaFull: './assets/cats/luna-full.webp',
@@ -236,6 +365,7 @@ function hoaAfterRender(){
   applyMoneyLanguage();
   insertMoneyReader();
   refreshCompanionArt();
+  requestAnimationFrame(hoaNormalizeMobileViewport);
 }
 
 // Apply the readability pass after every normal app render without touching the stored data model.
@@ -247,4 +377,5 @@ render = function(){
 };
 
 refreshCompanionArt();
+hoaNormalizeMobileViewport();
 render();
