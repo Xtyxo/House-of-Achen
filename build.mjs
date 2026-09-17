@@ -22,6 +22,7 @@ const approvedCatAssets = [
   'assets/cats/diana-head.webp',
 ];
 const appIconAssets = ['icon-192.png', 'icon-512.png'];
+const overrideFiles = ['app.css', 'app.js', 'crochet.css', 'crochet.js', 'finance.css', 'finance.js', 'dashboard.css', 'dashboard.js'];
 
 async function ensureParent(file) {
   await mkdir(dirname(join(OUT, file)), { recursive: true });
@@ -59,7 +60,7 @@ for (const file of appIconAssets) {
 }
 
 await mkdir(join(OUT, 'overrides'), { recursive: true });
-for (const file of ['app.css', 'app.js', 'crochet.css', 'crochet.js', 'finance.css', 'finance.js']) {
+for (const file of overrideFiles) {
   try { await copyFile(join('overrides', file), join(OUT, 'overrides', file)); } catch {}
 }
 
@@ -67,8 +68,6 @@ const buildId = process.env.COMMIT_REF?.slice(0, 10) || String(Date.now());
 let html = await readFile(join(OUT, 'index.html'), 'utf8');
 
 // Remove the legacy hand-drawn cat SVG function bodies from the mirrored production source itself.
-// The Git override below still owns the runtime render, but this prevents an old face from flashing
-// before app.js loads and makes the deployed source clean during audits.
 const lunaBootstrap = `function lunaSvg(){return\`<img class="hoa-cat hoa-cat-full hoa-luna" src="./assets/cats/luna-full.webp" alt="Luna, black cat with soft green eyes and a gold crescent moon" draggable="false" decoding="async">\`}`;
 const dianaBootstrap = `function dianaSvg(){return\`<img class="hoa-cat hoa-cat-full hoa-diana" src="./assets/cats/diana-full.webp" alt="Diana, gray tabby with a white muzzle and chest, soft green eyes, pearl necklace and pink heart pendant" draggable="false" decoding="async">\`}`;
 const lunaLegacyPattern = /function lunaSvg\(\)\{return`<svg class="cat-svg"[\s\S]*?<\/svg>`\}/;
@@ -85,22 +84,32 @@ html = html.replaceAll('icon.svg', 'icon-512.png');
 const appleIconTag = '<link rel="apple-touch-icon" href="./icon-512.png">';
 if (!html.includes('apple-touch-icon')) html = html.replace('</head>', `  ${appleIconTag}\n</head>`);
 
-const cssTag = '<link rel="stylesheet" href="./overrides/app.css">';
-const crochetCssTag = `<link rel="stylesheet" href="./overrides/crochet.css?v=${buildId}">`;
-const financeCssTag = `<link rel="stylesheet" href="./overrides/finance.css?v=${buildId}">`;
-const jsTag = '<script src="./overrides/app.js"></script>';
-const crochetJsTag = `<script src="./overrides/crochet.js?v=${buildId}"></script>`;
-const financeJsTag = `<script src="./overrides/finance.js?v=${buildId}"></script>`;
-if (!html.includes(cssTag)) html = html.replace('</head>', `  ${cssTag}\n</head>`);
-if (!html.includes('overrides/crochet.css')) html = html.replace('</head>', `  ${crochetCssTag}\n</head>`);
-if (!html.includes('overrides/finance.css')) html = html.replace('</head>', `  ${financeCssTag}\n</head>`);
-if (!html.includes(jsTag)) html = html.replace('</body>', `  ${jsTag}\n</body>`);
-if (!html.includes('overrides/crochet.js')) html = html.replace('</body>', `  ${crochetJsTag}\n</body>`);
-if (!html.includes('overrides/finance.js')) html = html.replace('</body>', `  ${financeJsTag}\n</body>`);
+const cssTags = [
+  '<link rel="stylesheet" href="./overrides/app.css">',
+  `<link rel="stylesheet" href="./overrides/crochet.css?v=${buildId}">`,
+  `<link rel="stylesheet" href="./overrides/finance.css?v=${buildId}">`,
+  `<link rel="stylesheet" href="./overrides/dashboard.css?v=${buildId}">`,
+];
+for (const tag of cssTags) {
+  const href = tag.match(/href="([^"]+)/)?.[1]?.split('?')[0];
+  if (!href || !html.includes(href)) html = html.replace('</head>', `  ${tag}\n</head>`);
+}
+
+const jsTags = [
+  '<script src="./overrides/app.js"></script>',
+  `<script src="./overrides/crochet.js?v=${buildId}"></script>`,
+  `<script src="./overrides/finance.js?v=${buildId}"></script>`,
+  `<script src="./overrides/dashboard.js?v=${buildId}"></script>`,
+];
+for (const tag of jsTags) {
+  const src = tag.match(/src="([^"]+)/)?.[1]?.split('?')[0];
+  if (!src || !html.includes(src)) html = html.replace('</body>', `  ${tag}\n</body>`);
+}
+
 html = html.replace(/<meta name="theme-color" content="[^"]*">/i, '<meta name="theme-color" content="#29224D">');
 await writeFile(join(OUT, 'index.html'), html);
 
-// Match installed PWA chrome to the premium midnight/lavender refresh and point it at the new icon.
+// Match installed PWA chrome to the premium midnight/lavender refresh and point it at the approved icon.
 try {
   const manifestPath = join(OUT, 'manifest.webmanifest');
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
