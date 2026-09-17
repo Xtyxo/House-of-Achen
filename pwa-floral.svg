@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="House of Achen floral crescent icon">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2b2142"/>
+      <stop offset="0.52" stop-color="#5a3f6f"/>
+      <stop offset="1" stop-color="#9b6f8e"/>
+    </linearGradient>
+    <linearGradient id="moon" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f9e8ac"/>
+      <stop offset="0.5" stop-color="#ddb765"/>
+      <stop offset="1" stop-color="#b9883f"/>
+    </linearGradient>
+    <radialGradient id="glow">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.34"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#140f22" flood-opacity="0.32"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <circle cx="372" cy="102" r="120" fill="url(#glow)"/>
+  <g fill="#fff" opacity="0.55">
+    <circle cx="102" cy="116" r="3"/><circle cx="154" cy="78" r="2"/><circle cx="422" cy="170" r="2.5"/>
+    <circle cx="378" cy="66" r="2"/><circle cx="88" cy="332" r="2"/><circle cx="430" cy="322" r="3"/>
+  </g>
+  <g filter="url(#shadow)">
+    <path d="M298 91c-92 15-158 96-148 190 10 95 91 165 187 157 38-3 73-18 101-41-28 10-59 13-90 8-91-15-153-101-138-192 9-57 46-102 88-122z" fill="url(#moon)"/>
+    <path d="M327 110c-68 21-115 86-106 160 8 69 55 123 118 142-86-1-159-67-169-153-10-88 49-166 132-187 9-2 18-3 25-3z" fill="#fff4c9" opacity="0.25"/>
+  </g>
+  <g transform="translate(0 4)">
+    <g transform="translate(125 345) rotate(-17)">
+      <ellipse cx="0" cy="0" rx="31" ry="14" fill="#92b996"/>
+      <ellipse cx="34" cy="-21" rx="30" ry="13" fill="#789f80" transform="rotate(-22 34 -21)"/>
+      <ellipse cx="61" cy="-48" rx="28" ry="12" fill="#a8c7a9" transform="rotate(-34 61 -48)"/>
+    </g>
+    <g transform="translate(160 365)">
+      <circle r="28" fill="#f0b6c8"/>
+      <circle cx="-18" cy="-5" r="19" fill="#f7c7d5"/>
+      <circle cx="16" cy="-12" r="20" fill="#e9a6bd"/>
+      <circle cx="10" cy="17" r="20" fill="#f3bfd0"/>
+      <circle cx="-14" cy="17" r="19" fill="#e7a8c4"/>
+      <circle r="8" fill="#e7c06b"/>
+    </g>
+    <g transform="translate(213 403)">
+      <circle r="23" fill="#d6c3ef"/>
+      <circle cx="-15" cy="-4" r="16" fill="#e3d5f6"/>
+      <circle cx="13" cy="-10" r="16" fill="#c8afe8"/>
+      <circle cx="10" cy="14" r="16" fill="#dbcaf0"/>
+      <circle cx="-11" cy="13" r="15" fill="#cdb7e8"/>
+      <circle r="7" fill="#e3bb62"/>
+    </g>
+    <g transform="translate(270 406)">
+      <ellipse cx="0" cy="0" rx="27" ry="11" fill="#8fb397" transform="rotate(20)"/>
+      <ellipse cx="34" cy="-4" rx="26" ry="10" fill="#aac7ad" transform="rotate(-10 34 -4)"/>
+    </g>
+  </g>
+  <g transform="translate(332 130)">
+    <path d="M0 0c20 11 32 28 37 49-18-9-36-11-55-6 11-14 17-28 18-43z" fill="#f2cad7"/>
+    <path d="M15 60c23 0 43 8 58 23-20 4-36 14-49 29-1-20-4-37-9-52z" fill="#d9c6ef"/>
+    <ellipse cx="2" cy="87" rx="26" ry="10" fill="#97b99c" transform="rotate(-31 2 87)"/>
+  </g>
+</svg>
