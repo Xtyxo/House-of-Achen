@@ -3,6 +3,8 @@ import { dirname, join } from 'node:path';
 
 const ORIGIN = 'https://house-of-achen-life-hq.netlify.app';
 const OUT = 'dist';
+const ICON_VERSION = 'hoa-icon-v2';
+const MANIFEST_VERSION = 'hoa-manifest-v2';
 const pages = Array.from({ length: 20 }, (_, i) => `beauty-babe/pages/page-${String(i + 1).padStart(2, '0')}.png`);
 const mirrored = [
   'index.html',
@@ -79,19 +81,22 @@ html = html.replace(
   "document.getElementById('lunaIconMount').innerHTML=`<img class=\"hoa-cat hoa-cat-head hoa-luna-head\" src=\"./assets/cats/luna-head.webp\" alt=\"Luna, black cat with soft green eyes and a gold crescent moon\" draggable=\"false\" decoding=\"async\">`;"
 );
 
-// Use the floral crescent as the browser/PWA icon instead of the previous SVG icon.
+// Chrome can keep a previously installed fallback letter icon unless the icon URL itself changes.
+// Remove every legacy icon/manifest declaration and add one canonical, versioned PWA identity block.
 html = html.replaceAll('icon.svg', 'icon-512.png');
-const iconTags = [
-  `<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=${buildId}">`,
-  `<link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png?v=${buildId}">`,
-  `<link rel="apple-touch-icon" sizes="512x512" href="./icon-512.png?v=${buildId}">`,
-];
-for (const tag of iconTags) {
-  const rel = tag.match(/rel="([^"]+)/)?.[1];
-  const size = tag.match(/sizes="([^"]+)/)?.[1];
-  const exact = rel === 'apple-touch-icon' ? 'rel="apple-touch-icon"' : `rel="icon" type="image/png" sizes="${size}"`;
-  if (!html.includes(exact)) html = html.replace('</head>', `  ${tag}\n</head>`);
-}
+html = html.replace(/<link\b[^>]*rel=["'][^"']*(?:shortcut\s+icon|apple-touch-icon|icon)[^"']*["'][^>]*>\s*/gi, '');
+html = html.replace(/<link\b[^>]*rel=["']manifest["'][^>]*>\s*/gi, '');
+html = html.replace(/<meta\b[^>]*name=["']application-name["'][^>]*>\s*/gi, '');
+html = html.replace(/<meta\b[^>]*name=["']mobile-web-app-capable["'][^>]*>\s*/gi, '');
+const pwaHeadTags = [
+  `<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=${ICON_VERSION}">`,
+  `<link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=${ICON_VERSION}">`,
+  `<link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png?v=${ICON_VERSION}">`,
+  `<link rel="manifest" href="/manifest.webmanifest?v=${MANIFEST_VERSION}">`,
+  '<meta name="application-name" content="House of Achen">',
+  '<meta name="mobile-web-app-capable" content="yes">',
+].join('\n  ');
+html = html.replace('</head>', `  ${pwaHeadTags}\n</head>`);
 
 const cssTags = [
   '<link rel="stylesheet" href="./overrides/app.css">',
@@ -122,17 +127,19 @@ await writeFile(join(OUT, 'index.html'), html);
 try {
   const manifestPath = join(OUT, 'manifest.webmanifest');
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
-  manifest.name = manifest.name || 'House of Achen';
-  manifest.short_name = manifest.short_name || 'House of Achen';
-  manifest.id = manifest.id || '/';
+  manifest.name = 'House of Achen';
+  manifest.short_name = 'House of Achen';
+  manifest.description = 'House of Achen Life HQ';
+  manifest.id = '/';
   manifest.start_url = '/';
   manifest.scope = '/';
   manifest.display = 'standalone';
+  manifest.prefer_related_applications = false;
   manifest.theme_color = '#29224D';
   manifest.background_color = '#FAF7FF';
   manifest.icons = [
-    { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-    { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' }
+    { src: `/icon-192.png?v=${ICON_VERSION}`, sizes: '192x192', type: 'image/png', purpose: 'any' },
+    { src: `/icon-512.png?v=${ICON_VERSION}`, sizes: '512x512', type: 'image/png', purpose: 'any' }
   ];
   await writeFile(manifestPath, JSON.stringify(manifest, null, 2));
 } catch (error) {
