@@ -3,8 +3,7 @@ import { dirname, join } from 'node:path';
 
 const ORIGIN = 'https://house-of-achen-life-hq.netlify.app';
 const OUT = 'dist';
-const ICON_VERSION = 'hoa-icon-v2';
-const MANIFEST_VERSION = 'hoa-manifest-v2';
+const PWA_VERSION = 'house-of-achen-pwa-v3';
 const pages = Array.from({ length: 20 }, (_, i) => `beauty-babe/pages/page-${String(i + 1).padStart(2, '0')}.png`);
 const mirrored = [
   'index.html',
@@ -24,6 +23,13 @@ const approvedCatAssets = [
   'assets/cats/diana-head.webp',
 ];
 const appIconAssets = ['icon-192.png', 'icon-512.png'];
+const iconAliases = [
+  ['icon-192.png', 'pwa-icon-192.png'],
+  ['icon-512.png', 'pwa-icon-512.png'],
+  ['icon-512.png', 'pwa-maskable-512.png'],
+  ['icon-192.png', 'favicon.png'],
+  ['icon-512.png', 'apple-touch-icon.png'],
+];
 const overrideFiles = ['app.css', 'app.js', 'crochet.css', 'crochet.js', 'finance.css', 'finance.js', 'dashboard.css', 'dashboard.js'];
 
 async function ensureParent(file) {
@@ -41,24 +47,27 @@ async function fetchFile(file) {
 
 for (const file of mirrored) await fetchFile(file);
 
-// If Nova has committed a fresher live-data snapshot to GitHub, prefer that over the mirrored one.
 try {
   await access('data/live.json');
   await mkdir(join(OUT, 'data'), { recursive: true });
   await copyFile('data/live.json', join(OUT, 'data/live.json'));
 } catch {}
 
-// Approved final Luna/Diana art lives in GitHub so production does not depend on a generated-image URL.
 for (const file of approvedCatAssets) {
   await access(file);
   await ensureParent(file);
   await copyFile(file, join(OUT, file));
 }
 
-// Keep the approved floral crescent icons under Git control and overwrite older mirrored PWA icons.
 for (const file of appIconAssets) {
   await access(file);
   await copyFile(file, join(OUT, file));
+}
+
+// Give Android/Chrome completely new icon URLs so an old generated letter tile cannot be reused.
+for (const [source, target] of iconAliases) {
+  await access(source);
+  await copyFile(source, join(OUT, target));
 }
 
 await mkdir(join(OUT, 'overrides'), { recursive: true });
@@ -69,7 +78,6 @@ for (const file of overrideFiles) {
 const buildId = process.env.COMMIT_REF?.slice(0, 10) || String(Date.now());
 let html = await readFile(join(OUT, 'index.html'), 'utf8');
 
-// Remove the legacy hand-drawn cat SVG function bodies from the mirrored production source itself.
 const lunaBootstrap = `function lunaSvg(){return\`<img class="hoa-cat hoa-cat-full hoa-luna" src="./assets/cats/luna-full.webp" alt="Luna, black cat with soft green eyes and a gold crescent moon" draggable="false" decoding="async">\`}`;
 const dianaBootstrap = `function dianaSvg(){return\`<img class="hoa-cat hoa-cat-full hoa-diana" src="./assets/cats/diana-full.webp" alt="Diana, gray tabby with a white muzzle and chest, soft green eyes, pearl necklace and pink heart pendant" draggable="false" decoding="async">\`}`;
 const lunaLegacyPattern = /function lunaSvg\(\)\{return`<svg class="cat-svg"[\s\S]*?<\/svg>`\}/;
@@ -81,20 +89,23 @@ html = html.replace(
   "document.getElementById('lunaIconMount').innerHTML=`<img class=\"hoa-cat hoa-cat-head hoa-luna-head\" src=\"./assets/cats/luna-head.webp\" alt=\"Luna, black cat with soft green eyes and a gold crescent moon\" draggable=\"false\" decoding=\"async\">`;"
 );
 
-// Chrome can keep a previously installed fallback letter icon unless the icon URL itself changes.
-// Remove every legacy icon/manifest declaration and add one canonical, versioned PWA identity block.
-html = html.replaceAll('icon.svg', 'icon-512.png');
+// Canonical PWA identity. Remove stale declarations, then add fresh Android + shortcut fallbacks.
+html = html.replaceAll('icon.svg', 'pwa-icon-512.png');
 html = html.replace(/<link\b[^>]*rel=["'][^"']*(?:shortcut\s+icon|apple-touch-icon|icon)[^"']*["'][^>]*>\s*/gi, '');
 html = html.replace(/<link\b[^>]*rel=["']manifest["'][^>]*>\s*/gi, '');
-html = html.replace(/<meta\b[^>]*name=["']application-name["'][^>]*>\s*/gi, '');
-html = html.replace(/<meta\b[^>]*name=["']mobile-web-app-capable["'][^>]*>\s*/gi, '');
+html = html.replace(/<meta\b[^>]*name=["'](?:application-name|mobile-web-app-capable|apple-mobile-web-app-capable|apple-mobile-web-app-title)["'][^>]*>\s*/gi, '');
+if (/<title>[\s\S]*?<\/title>/i.test(html)) html = html.replace(/<title>[\s\S]*?<\/title>/i, '<title>House of Achen</title>');
+else html = html.replace('</head>', '  <title>House of Achen</title>\n</head>');
 const pwaHeadTags = [
-  `<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=${ICON_VERSION}">`,
-  `<link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=${ICON_VERSION}">`,
-  `<link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png?v=${ICON_VERSION}">`,
-  `<link rel="manifest" href="/manifest.webmanifest?v=${MANIFEST_VERSION}">`,
+  `<link rel="shortcut icon" type="image/png" href="/favicon.png?v=${PWA_VERSION}">`,
+  `<link rel="icon" type="image/png" sizes="192x192" href="/pwa-icon-192.png?v=${PWA_VERSION}">`,
+  `<link rel="icon" type="image/png" sizes="512x512" href="/pwa-icon-512.png?v=${PWA_VERSION}">`,
+  `<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=${PWA_VERSION}">`,
+  `<link rel="manifest" href="/manifest.webmanifest?v=${PWA_VERSION}">`,
   '<meta name="application-name" content="House of Achen">',
   '<meta name="mobile-web-app-capable" content="yes">',
+  '<meta name="apple-mobile-web-app-capable" content="yes">',
+  '<meta name="apple-mobile-web-app-title" content="House of Achen">',
 ].join('\n  ');
 html = html.replace('</head>', `  ${pwaHeadTags}\n</head>`);
 
@@ -123,30 +134,30 @@ for (const tag of jsTags) {
 html = html.replace(/<meta name="theme-color" content="[^"]*">/i, '<meta name="theme-color" content="#29224D">');
 await writeFile(join(OUT, 'index.html'), html);
 
-// Make the installed app reliably identifiable/installable on Android and desktop Chrome.
 try {
   const manifestPath = join(OUT, 'manifest.webmanifest');
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
   manifest.name = 'House of Achen';
   manifest.short_name = 'House of Achen';
   manifest.description = 'House of Achen Life HQ';
-  manifest.id = '/';
-  manifest.start_url = '/';
+  manifest.id = `/${PWA_VERSION}`;
+  manifest.start_url = `/?pwa=${PWA_VERSION}`;
   manifest.scope = '/';
   manifest.display = 'standalone';
+  manifest.display_override = ['standalone', 'minimal-ui'];
   manifest.prefer_related_applications = false;
   manifest.theme_color = '#29224D';
   manifest.background_color = '#FAF7FF';
   manifest.icons = [
-    { src: `/icon-192.png?v=${ICON_VERSION}`, sizes: '192x192', type: 'image/png', purpose: 'any' },
-    { src: `/icon-512.png?v=${ICON_VERSION}`, sizes: '512x512', type: 'image/png', purpose: 'any' }
+    { src: `/pwa-icon-192.png?v=${PWA_VERSION}`, sizes: '192x192', type: 'image/png', purpose: 'any' },
+    { src: `/pwa-icon-512.png?v=${PWA_VERSION}`, sizes: '512x512', type: 'image/png', purpose: 'any' },
+    { src: `/pwa-maskable-512.png?v=${PWA_VERSION}`, sizes: '512x512', type: 'image/png', purpose: 'maskable' }
   ];
   await writeFile(manifestPath, JSON.stringify(manifest, null, 2));
 } catch (error) {
   console.warn('Could not update manifest:', error.message);
 }
 
-// Change the cache name on every Git-backed deploy so phones do not stay stuck on an older app shell.
 const swPath = join(OUT, 'service-worker.js');
 let sw = await readFile(swPath, 'utf8');
 sw = sw.replace(/const CACHE='[^']*';/, `const CACHE='house-of-achen-git-${buildId}';`);
