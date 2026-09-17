@@ -184,5 +184,13 @@ render=function(){
   hoaDreamInstallBottomTabs();
   return result;
 };
+
+// A full app/browser launch should always land on Home instead of restoring the last screen.
+// Navigation still remembers the current view while the app remains open.
+if(!state.ui)state.ui={};
+currentView='dashboard';
+state.ui.view='dashboard';
+saveState(false);
+
 hoaDreamInstallBottomTabs();
 render();
