@@ -53,7 +53,7 @@ for (const file of approvedCatAssets) {
   await copyFile(file, join(OUT, file));
 }
 
-// Keep the approved floral crescent icon under Git control and overwrite the older mirrored PWA icons.
+// Keep the approved floral crescent icons under Git control and overwrite older mirrored PWA icons.
 for (const file of appIconAssets) {
   await access(file);
   await copyFile(file, join(OUT, file));
@@ -81,8 +81,17 @@ html = html.replace(
 
 // Use the floral crescent as the browser/PWA icon instead of the previous SVG icon.
 html = html.replaceAll('icon.svg', 'icon-512.png');
-const appleIconTag = '<link rel="apple-touch-icon" href="./icon-512.png">';
-if (!html.includes('apple-touch-icon')) html = html.replace('</head>', `  ${appleIconTag}\n</head>`);
+const iconTags = [
+  `<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=${buildId}">`,
+  `<link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png?v=${buildId}">`,
+  `<link rel="apple-touch-icon" sizes="512x512" href="./icon-512.png?v=${buildId}">`,
+];
+for (const tag of iconTags) {
+  const rel = tag.match(/rel="([^"]+)/)?.[1];
+  const size = tag.match(/sizes="([^"]+)/)?.[1];
+  const exact = rel === 'apple-touch-icon' ? 'rel="apple-touch-icon"' : `rel="icon" type="image/png" sizes="${size}"`;
+  if (!html.includes(exact)) html = html.replace('</head>', `  ${tag}\n</head>`);
+}
 
 const cssTags = [
   '<link rel="stylesheet" href="./overrides/app.css">',
@@ -109,14 +118,21 @@ for (const tag of jsTags) {
 html = html.replace(/<meta name="theme-color" content="[^"]*">/i, '<meta name="theme-color" content="#29224D">');
 await writeFile(join(OUT, 'index.html'), html);
 
-// Match installed PWA chrome to the premium midnight/lavender refresh and point it at the approved icon.
+// Make the installed app reliably identifiable/installable on Android and desktop Chrome.
 try {
   const manifestPath = join(OUT, 'manifest.webmanifest');
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+  manifest.name = manifest.name || 'House of Achen';
+  manifest.short_name = manifest.short_name || 'House of Achen';
+  manifest.id = manifest.id || '/';
+  manifest.start_url = '/';
+  manifest.scope = '/';
+  manifest.display = 'standalone';
   manifest.theme_color = '#29224D';
   manifest.background_color = '#FAF7FF';
   manifest.icons = [
-    { src: './icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+    { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+    { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' }
   ];
   await writeFile(manifestPath, JSON.stringify(manifest, null, 2));
 } catch (error) {
@@ -127,6 +143,9 @@ try {
 const swPath = join(OUT, 'service-worker.js');
 let sw = await readFile(swPath, 'utf8');
 sw = sw.replace(/const CACHE='[^']*';/, `const CACHE='house-of-achen-git-${buildId}';`);
+if (!sw.includes('HOUSE_OF_ACHEN_UPDATE_POLICY')) {
+  sw += `\n\n// HOUSE_OF_ACHEN_UPDATE_POLICY\nself.addEventListener('install',()=>self.skipWaiting());\nself.addEventListener('activate',(event)=>{\n  event.waitUntil((async()=>{\n    const keys=await caches.keys();\n    await Promise.all(keys.filter((key)=>key!==CACHE).map((key)=>caches.delete(key)));\n    await self.clients.claim();\n  })());\n});\n`;
+}
 await writeFile(swPath, sw);
 
 console.log(`House of Achen build ready in ${OUT}. Mirrored ${mirrored.length} production assets and applied GitHub overrides.`);
