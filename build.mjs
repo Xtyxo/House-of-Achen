@@ -1,11 +1,9 @@
 import { mkdir, writeFile, readFile, copyFile, access } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import sharp from 'sharp';
 
 const ORIGIN = 'https://house-of-achen-life-hq.netlify.app';
 const OUT = 'dist';
-const PWA_VERSION = 'house-of-achen-pwa-v4';
-const PWA_BG = '#FAF7FF';
+const PWA_VERSION = 'house-of-achen-pwa-v5';
 const pages = Array.from({ length: 20 }, (_, i) => `beauty-babe/pages/page-${String(i + 1).padStart(2, '0')}.png`);
 const mirrored = [
   'index.html',
@@ -24,7 +22,7 @@ const approvedCatAssets = [
   'assets/cats/diana-full.webp',
   'assets/cats/diana-head.webp',
 ];
-const appIconAssets = ['icon-192.png', 'icon-512.png'];
+const appIconAssets = ['icon-192.png', 'icon-512.png', 'pwa-floral.svg'];
 const overrideFiles = ['app.css', 'app.js', 'crochet.css', 'crochet.js', 'finance.css', 'finance.js', 'dashboard.css', 'dashboard.js'];
 
 async function ensureParent(file) {
@@ -59,39 +57,6 @@ for (const file of appIconAssets) {
   await copyFile(file, join(OUT, file));
 }
 
-// Re-encode the floral artwork as plain true-color RGBA PNGs.
-// The source artwork is an indexed/palette PNG; Android browsers were falling back to a generated letter icon.
-async function rgbaIcon(source, size, target) {
-  await sharp(source)
-    .resize(size, size, { fit: 'contain', background: { r: 250, g: 247, b: 255, alpha: 0 } })
-    .ensureAlpha()
-    .png({ palette: false, compressionLevel: 9 })
-    .toFile(join(OUT, target));
-}
-
-await rgbaIcon('icon-192.png', 192, 'pwa-icon-192.png');
-await rgbaIcon('icon-512.png', 512, 'pwa-icon-512.png');
-await rgbaIcon('icon-192.png', 96, 'favicon.png');
-await rgbaIcon('icon-512.png', 180, 'apple-touch-icon.png');
-
-// Genuine Android maskable icon: preserve the floral artwork inside the central safe zone.
-const maskableArtwork = await sharp('icon-512.png')
-  .resize(380, 380, { fit: 'contain', background: { r: 250, g: 247, b: 255, alpha: 0 } })
-  .ensureAlpha()
-  .png({ palette: false, compressionLevel: 9 })
-  .toBuffer();
-await sharp({
-  create: {
-    width: 512,
-    height: 512,
-    channels: 4,
-    background: { r: 250, g: 247, b: 255, alpha: 1 }
-  }
-})
-  .composite([{ input: maskableArtwork, gravity: 'centre' }])
-  .png({ palette: false, compressionLevel: 9 })
-  .toFile(join(OUT, 'pwa-maskable-512.png'));
-
 await mkdir(join(OUT, 'overrides'), { recursive: true });
 for (const file of overrideFiles) {
   try { await copyFile(join('overrides', file), join(OUT, 'overrides', file)); } catch {}
@@ -111,18 +76,20 @@ html = html.replace(
   "document.getElementById('lunaIconMount').innerHTML=`<img class=\"hoa-cat hoa-cat-head hoa-luna-head\" src=\"./assets/cats/luna-head.webp\" alt=\"Luna, black cat with soft green eyes and a gold crescent moon\" draggable=\"false\" decoding=\"async\">`;"
 );
 
-// Canonical PWA identity. Remove stale declarations, then add fresh Android + shortcut fallbacks.
-html = html.replaceAll('icon.svg', 'pwa-icon-512.png');
+// Use the vector floral crescent as the primary Android/PWA identity, matching the delivery style
+// that worked with the original icon. Keep 192/512 PNGs as installability fallbacks.
+html = html.replaceAll('icon.svg', 'pwa-floral.svg');
 html = html.replace(/<link\b[^>]*rel=["'][^"']*(?:shortcut\s+icon|apple-touch-icon|icon)[^"']*["'][^>]*>\s*/gi, '');
 html = html.replace(/<link\b[^>]*rel=["']manifest["'][^>]*>\s*/gi, '');
 html = html.replace(/<meta\b[^>]*name=["'](?:application-name|mobile-web-app-capable|apple-mobile-web-app-capable|apple-mobile-web-app-title)["'][^>]*>\s*/gi, '');
 if (/<title>[\s\S]*?<\/title>/i.test(html)) html = html.replace(/<title>[\s\S]*?<\/title>/i, '<title>House of Achen</title>');
 else html = html.replace('</head>', '  <title>House of Achen</title>\n</head>');
 const pwaHeadTags = [
-  `<link rel="shortcut icon" type="image/png" href="/favicon.png?v=${PWA_VERSION}">`,
-  `<link rel="icon" type="image/png" sizes="192x192" href="/pwa-icon-192.png?v=${PWA_VERSION}">`,
-  `<link rel="icon" type="image/png" sizes="512x512" href="/pwa-icon-512.png?v=${PWA_VERSION}">`,
-  `<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=${PWA_VERSION}">`,
+  `<link rel="shortcut icon" type="image/svg+xml" href="/pwa-floral.svg?v=${PWA_VERSION}">`,
+  `<link rel="icon" type="image/svg+xml" sizes="any" href="/pwa-floral.svg?v=${PWA_VERSION}">`,
+  `<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=${PWA_VERSION}">`,
+  `<link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=${PWA_VERSION}">`,
+  `<link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png?v=${PWA_VERSION}">`,
   `<link rel="manifest" href="/manifest.webmanifest?v=${PWA_VERSION}">`,
   '<meta name="application-name" content="House of Achen">',
   '<meta name="mobile-web-app-capable" content="yes">',
@@ -169,11 +136,11 @@ try {
   manifest.display_override = ['standalone', 'minimal-ui'];
   manifest.prefer_related_applications = false;
   manifest.theme_color = '#29224D';
-  manifest.background_color = PWA_BG;
+  manifest.background_color = '#FAF7FF';
   manifest.icons = [
-    { src: `/pwa-icon-192.png?v=${PWA_VERSION}`, sizes: '192x192', type: 'image/png', purpose: 'any' },
-    { src: `/pwa-icon-512.png?v=${PWA_VERSION}`, sizes: '512x512', type: 'image/png', purpose: 'any' },
-    { src: `/pwa-maskable-512.png?v=${PWA_VERSION}`, sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+    { src: `/pwa-floral.svg?v=${PWA_VERSION}`, sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' },
+    { src: `/icon-192.png?v=${PWA_VERSION}`, sizes: '192x192', type: 'image/png', purpose: 'any' },
+    { src: `/icon-512.png?v=${PWA_VERSION}`, sizes: '512x512', type: 'image/png', purpose: 'any' }
   ];
   await writeFile(manifestPath, JSON.stringify(manifest, null, 2));
 } catch (error) {
