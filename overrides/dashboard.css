@@ -100,3 +100,38 @@ body.hoa-dream-home .content{padding-top:16px}
 @media(max-width:480px){
   .hoa-dream-banner{min-height:215px}.hoa-dream-banner-copy{top:68px}.hoa-dream-banner-copy h1{font-size:53px}.hoa-dream-banner-pets{width:70%;right:-13%;height:72%}.hoa-dream-date{min-width:116px}.hoa-dream-money-strip span{font-size:8.5px}.hoa-dream-money-strip b{font-size:17px}.hoa-dream-chart-wrap{height:210px}
 }
+
+
+/* Stabilization pass 1 — Pandora dock near top + mobile brain-dump focus */
+.hoa-dream-music-dock{
+  display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:14px;
+  padding:14px 16px;border-radius:21px;border:1px solid rgba(95,69,132,.16);
+  background:
+    radial-gradient(circle at 86% 10%,rgba(255,255,255,.72),transparent 18%),
+    linear-gradient(120deg,rgba(236,229,255,.97),rgba(255,230,242,.96) 52%,rgba(222,238,255,.94));
+  box-shadow:0 12px 30px rgba(69,47,101,.10),inset 0 1px 0 rgba(255,255,255,.95);
+}
+.hoa-dream-music-icon{
+  width:48px;height:48px;border-radius:15px;display:grid;place-items:center;color:#fff;
+  background:linear-gradient(145deg,#5d4aa0,#a3559a 58%,#df73a8);
+  box-shadow:0 9px 20px rgba(80,49,125,.22);
+}
+.hoa-dream-music-copy{min-width:0}.hoa-dream-music-copy small,.hoa-dream-music-copy b,.hoa-dream-music-copy span{display:block}
+.hoa-dream-music-copy small{font-size:9px;letter-spacing:.14em;font-weight:900;color:#79558a}
+.hoa-dream-music-copy b{margin-top:2px;font:700 17px Georgia,serif;color:#2f294d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hoa-dream-music-copy span{margin-top:2px;font-size:10px;color:#766d84}
+.hoa-dream-equalizer{height:18px;display:flex;align-items:flex-end;gap:3px;margin-top:5px}
+.hoa-dream-equalizer i{display:block;width:3px;border-radius:5px;background:linear-gradient(#8b70d1,#de69a4);animation:hoaDreamEq .85s ease-in-out infinite alternate;transform-origin:bottom}
+.hoa-dream-equalizer i:nth-child(1){height:7px;animation-delay:-.1s}.hoa-dream-equalizer i:nth-child(2){height:15px;animation-delay:-.45s}.hoa-dream-equalizer i:nth-child(3){height:10px;animation-delay:-.25s}.hoa-dream-equalizer i:nth-child(4){height:17px;animation-delay:-.65s}.hoa-dream-equalizer i:nth-child(5){height:9px;animation-delay:-.35s}.hoa-dream-equalizer i:nth-child(6){height:13px;animation-delay:-.55s}
+@keyframes hoaDreamEq{from{transform:scaleY(.38);opacity:.65}to{transform:scaleY(1);opacity:1}}
+.hoa-dream-music-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.hoa-dream-music-actions button{border:0;border-radius:12px;font-size:10px;font-weight:850;padding:9px 11px}
+.hoa-dream-music-play{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#6747a3,#bd5792);color:#fff;box-shadow:0 7px 16px rgba(95,57,139,.20)}
+.hoa-dream-music-settings{background:rgba(255,255,255,.78);color:#685272;border:1px solid rgba(96,68,129,.12)!important}
+.hoa-dream-soft-card.brain textarea{min-height:92px;resize:vertical;touch-action:manipulation}
+@media(max-width:700px){
+  .hoa-dream-music-dock{grid-template-columns:auto minmax(0,1fr);gap:10px;padding:12px}
+  .hoa-dream-music-icon{width:42px;height:42px;border-radius:13px}
+  .hoa-dream-music-actions{grid-column:1/-1;display:grid;grid-template-columns:1fr auto;width:100%}
+  .hoa-dream-music-actions button{min-height:38px}
+}

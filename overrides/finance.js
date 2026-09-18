@@ -215,3 +215,95 @@ hoaEnsureManualInvestments();saveState(false);
 const hoaFinanceBaseRender=render;
 render=function(){hoaEnsureManualInvestments();if(currentView==='payday-live'){document.getElementById('pageTitle').textContent='Payday Desk';renderPaydayLive();hoaPolishRenderedPage();return;}const out=hoaFinanceBaseRender();hoaPolishRenderedPage();return out;};
 hoaDecorateNavigation();render();
+
+
+// Stabilization pass 1: spending-only bank view + editable Quick Spend actuals.
+function hoaBankSpendText(t){return [t?.name,t?.merchant,t?.providerCategory,t?.account].filter(Boolean).join(' ').toLowerCase();}
+function hoaLooksLikePersonTransfer(t){
+  const text=hoaBankSpendText(t);
+  return /\b(payment to|sent to|paid to|zelle|venmo|cash ?app|cashapp)\b/.test(text);
+}
+function hoaLooksLikeOwnAccountTransfer(t){
+  const text=hoaBankSpendText(t);
+  return /round up|chime transfer|transfer (from|to) chime|savings transfer|account transfer|money transfer to ally|transfer to ally bank|capital one.*transfer|marcus.*transfer|varo.*transfer|current.*transfer/.test(text);
+}
+function hoaIsEconomicSpendBankTx(t){
+  if(num(t?.amount)<=0)return false;
+  const category=String(t?.providerCategory||'').toLowerCase();
+  const text=hoaBankSpendText(t);
+  if(/round up/.test(text))return false;
+  if(/transfer/.test(category)||/\btransfer\b/.test(text)){
+    if(hoaLooksLikeOwnAccountTransfer(t))return false;
+    return hoaLooksLikePersonTransfer(t);
+  }
+  return true;
+}
+function hoaSpendingBankRows(){
+  return [...(state.bankTransactions||[])].filter(hoaIsEconomicSpendBankTx).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+}
+renderSpending=function(){
+  const bt=hoaSpendingBankRows();
+  const ledger=[...(state.transactions||[])].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const added=bt.filter(t=>t.addedToLedger||ledger.some(x=>x.sourceBankTxId===t.id)).length;
+  const uncategorized=bt.filter(t=>!t.paydeskCategory).length;
+  const spent=bt.reduce((sum,t)=>sum+Math.abs(num(t.amount)),0);
+  document.getElementById('content').innerHTML=`<div class="hero"><div><div class="eyebrow">ACTUAL SPENDING ONLY</div><h2>Overall Spending</h2><p>Purchases and money sent to other people show here. Transfers between your own accounts, savings moves and round-ups stay out of this page.</p></div><div class="hero-actions"><button class="btn" onclick="openChatGPTBankRefresh()">Update banking info with ChatGPT</button><button class="btn primary" onclick="openTransactionModal()">+ Manual transaction</button></div></div>
+  <div class="grid kpis"><div class="card kpi a-peach"><div class="kpi-label">Recent spending shown</div><div class="kpi-value">${money(spent)}</div><div class="bank-kpi-note">Own-account transfers and round-ups excluded.</div></div><div class="card kpi a-blue"><div class="kpi-label">Spending rows</div><div class="kpi-value">${bt.length}</div></div><div class="card kpi a-lilac"><div class="kpi-label">Needs a category</div><div class="kpi-value">${uncategorized}</div></div><div class="card kpi a-mint"><div class="kpi-label">Added to HOA ledger</div><div class="kpi-value">${added}</div></div></div>
+  <div class="callout info-only" style="margin-top:16px"><b>Filtered on purpose:</b> House of Achen keeps the full bank snapshot for reconciliation, but this page only shows economic spending. Internal transfers such as Chime Checking ↔ Chime Savings, transfers to your own Ally account, and round-ups are hidden here.</div>
+  <div class="section-title"><div><h3>Recent purchases & person-to-person outflows</h3><p>Choose your Paycheck Desk category, then add a row to the ledger only when you want it counted there.</p></div></div>
+  ${bt.length?`<div class="table-wrap bank-activity-table"><table class="table" style="min-width:1040px"><thead><tr><th>Date</th><th>Account</th><th>Merchant / person</th><th>Spent</th><th>Bank label</th><th>Your category</th><th>Actions</th></tr></thead><tbody>${bt.map(t=>{const linked=t.addedToLedger||ledger.some(x=>x.sourceBankTxId===t.id);return `<tr><td>${fmtDate(t.date)}</td><td>${esc(t.account)}</td><td><b>${esc(t.merchant||t.name)}</b><div class="ledger-source">${esc(t.name||'')}</div></td><td class="money outflow">-${money(Math.abs(num(t.amount)))}</td><td><span class="mini-tag">${esc(t.providerCategory||'')}</span></td><td><select onchange="setBankCategory('${t.id}',this.value)">${paydeskCategoryOptions(t.paydeskCategory||'')}</select></td><td><div class="activity-actions"><button class="btn tiny ${linked?'':'primary'}" ${linked?'disabled':''} onclick="addBankTxToLedger('${t.id}')">${linked?'Added ✓':'Add to ledger'}</button>${isDeliveryBankTx(t)?`<button class="btn tiny" onclick="logDeliveryFromBank('${t.id}')">Log delivery</button>`:''}</div></td></tr>`;}).join('')}</tbody></table></div>`:'<div class="empty-state">No qualifying spending is in the latest bank snapshot.</div>'}
+  <div class="section-title"><div><h3>House of Achen ledger</h3><p>Your manual and imported ledger entries. Transfers marked as transfers remain available here for reconciliation but do not become spending just because they moved money.</p></div></div>
+  ${ledger.length?`<div class="table-wrap"><table class="table" style="min-width:850px"><thead><tr><th>Date</th><th>Name</th><th>Category</th><th>Group</th><th>Amount</th><th>Source</th><th></th></tr></thead><tbody>${ledger.map(t=>`<tr><td>${fmtDate(t.date)}</td><td><b>${esc(t.name||t.category)}</b></td><td>${esc(t.category||'')}</td><td>${groupChip(t.group)}</td><td class="money">${money(t.paidAmount||t.plannedAmount)}</td><td>${t.sourceBankTxId?'<span class="mini-tag">Bank snapshot</span>':'Manual/app'}</td><td><button class="btn tiny" onclick="openTransactionModal('${t.id}')">Edit</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty-state">No House of Achen ledger transactions yet.</div>'}`;
+};
+
+function hoaQuickLedgerSpent(p,name){
+  return paycheckTransactions(p).filter(t=>t.status==='Done'&&t.group==='Expenses'&&t.category===name).reduce((sum,t)=>sum+Math.abs(num(t.paidAmount||t.plannedAmount)),0);
+}
+function hoaQuickEffectiveSpent(p,q){
+  const ledger=hoaQuickLedgerSpent(p,q.name);
+  return q.spentManual===null||q.spentManual===undefined||q.spentManual===''?ledger:Math.max(0,num(q.spentManual));
+}
+quickSpendActual=function(p,name){
+  const q=(p?.quickSpend||[]).find(x=>x.name===name);
+  return q?hoaQuickEffectiveSpent(p,q):hoaQuickLedgerSpent(p,name);
+};
+openQuickModal=function(i=null){
+  const p=selectedPaycheck();
+  const q=i===null?{name:'',cap:0,priority:'Planned',spentManual:null}:p.quickSpend[i];
+  const spentValue=q.spentManual===null||q.spentManual===undefined?'':q.spentManual;
+  openModal(i===null?'Add quick-spend bucket':'Edit quick-spend bucket',`<div class="form-grid"><div class="field span2"><label>Bucket</label><input id="qName" value="${esc(q.name||'')}"></div><div class="field"><label>Planned cap</label><input id="qCap" type="number" step=".01" value="${num(q.cap)}"></div><div class="field"><label>Priority</label><select id="qPri">${['Essential','Planned','Fun','Flex'].map(x=>`<option ${x===q.priority?'selected':''}>${x}</option>`).join('')}</select></div><div class="field span2"><label>Spent so far</label><input id="qSpent" type="number" min="0" step=".01" value="${spentValue}" placeholder="Leave blank to calculate from completed ledger transactions"><div class="sub" style="margin-top:5px">Enter a total here when you want to track the bucket directly. Leave it blank to use completed ledger transactions in this category.</div></div></div>`,`<button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="saveQuick(${i===null?'null':i})">Save</button>`);
+};
+saveQuick=function(i){
+  const p=selectedPaycheck();
+  const prior=i===null?{}:(p.quickSpend[i]||{});
+  const rawSpent=document.getElementById('qSpent').value.trim();
+  const q={...prior,name:document.getElementById('qName').value.trim(),cap:Math.max(0,num(document.getElementById('qCap').value)),priority:document.getElementById('qPri').value,spentManual:rawSpent===''?null:Math.max(0,num(rawSpent))};
+  if(!q.name)return toast('Add a bucket name');
+  if(i===null)p.quickSpend.push(q);else p.quickSpend[i]=q;
+  markPayEdited(p);saveState();closeModal();renderPayday();
+};
+quickTable=function(p){
+  if(!p||!(p.quickSpend||[]).length)return '<div class="empty-state">No quick-spend buckets yet.</div>';
+  return `<div class="table-wrap"><table class="table"><thead><tr><th>Bucket</th><th>Planned cap</th><th>Priority</th><th>Spent</th><th>Source</th><th>Remaining</th><th></th></tr></thead><tbody>${p.quickSpend.map((q,i)=>{const ledger=hoaQuickLedgerSpent(p,q.name),manual=!(q.spentManual===null||q.spentManual===undefined||q.spentManual===''),spent=hoaQuickEffectiveSpent(p,q);return `<tr><td><b>${esc(q.name)}</b></td><td class="money">${money(q.cap)}</td><td>${esc(q.priority||'')}</td><td class="money">${money(spent)}</td><td><span class="mini-tag">${manual?'Manual total':`Ledger · ${money(ledger)}`}</span></td><td class="money">${money(Math.max(0,num(q.cap)-spent))}</td><td><button class="btn tiny" onclick="openQuickModal(${i})">Edit</button> <button class="btn tiny danger" onclick="deleteQuick(${i})">×</button></td></tr>`;}).join('')}</tbody></table></div>`;
+};
+
+const hoaCoreBaseCalcPaycheck=calcPaycheck;
+calcPaycheck=function(p){
+  const base=hoaCoreBaseCalcPaycheck(p);
+  if(!p||p.importedSnapshot&&!p.edited)return base;
+  const tx=paycheckTransactions(p);
+  let logged=tx.filter(t=>t.status==='Done'&&t.group!=='Income'&&t.countedElsewhere!==true).reduce((sum,t)=>sum+Math.abs(num(t.paidAmount||t.plannedAmount)),0);
+  (p.quickSpend||[]).forEach(q=>{
+    if(q.spentManual===null||q.spentManual===undefined||q.spentManual==='')return;
+    const ledger=hoaQuickLedgerSpent(p,q.name);
+    logged+=Math.max(0,num(q.spentManual))-ledger;
+  });
+  const moved=(p.allocations||[]).reduce((sum,a)=>sum+num(a.moved),0);
+  const allocationRemaining=(p.allocations||[]).reduce((sum,a)=>sum+Math.max(0,num(a.planned)-num(a.moved)),0);
+  const quickRemaining=(p.quickSpend||[]).reduce((sum,q)=>sum+Math.max(0,num(q.cap)-hoaQuickEffectiveSpent(p,q)),0);
+  const available=num(p.netPay)+num(p.startingChecking)+num(p.otherIncome);
+  const actualCashLeft=available-moved-logged;
+  const stillNeed=allocationRemaining+num(p.billsDue)+quickRemaining;
+  const safe=Math.max(0,actualCashLeft-stillNeed-num(p.cushion));
+  return {...base,available,moved,logged,actualCashLeft,stillNeed,safe,quickRemaining,allocationRemaining};
+};

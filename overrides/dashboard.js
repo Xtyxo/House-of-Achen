@@ -194,3 +194,52 @@ saveState(false);
 
 hoaDreamInstallBottomTabs();
 render();
+
+
+// Stabilization pass 1: keep mobile text editing focused and restore the Pandora dock.
+function hoaDreamMusicDockMarkup(){
+  const label=(state.settings?.pandoraLabel||'My Pandora').trim()||'My Pandora';
+  const hasPandora=!!String(state.settings?.pandoraUrl||'').trim();
+  return `<section class="hoa-dream-music-dock" aria-label="Pandora music dock">
+    <div class="hoa-dream-music-icon" aria-hidden="true">${hoaIcon('note',24)}</div>
+    <div class="hoa-dream-music-copy">
+      <small>PANDORA MUSIC DOCK</small>
+      <b>${esc(label)}</b>
+      <span>${hasPandora?'Your saved Pandora station is ready.':'Set your favorite Pandora station or playlist.'}</span>
+      <div class="hoa-dream-equalizer" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+    <div class="hoa-dream-music-actions">
+      <button class="hoa-dream-music-play" onclick="openPandora()">${hoaIcon('sparkle',16)} Open Pandora</button>
+      <button class="hoa-dream-music-settings" onclick="openPandoraSettings()">${hasPandora?'Change':'Set'} default</button>
+    </div>
+  </section>`;
+}
+function hoaDreamUpgradeDashboard(){
+  if(currentView!=='dashboard')return;
+  const root=document.querySelector('.hoa-dream-dashboard');
+  if(!root)return;
+  const accounts=root.querySelector('.hoa-dream-accounts');
+  if(accounts&&!root.querySelector('.hoa-dream-music-dock')){
+    accounts.insertAdjacentHTML('beforebegin',hoaDreamMusicDockMarkup());
+  }
+  root.querySelector('.hoa-dream-soft-card.music')?.remove();
+}
+function hoaDreamHasFocusedEditor(){
+  if(currentView!=='dashboard')return false;
+  const el=document.activeElement;
+  if(!el||!el.closest?.('.hoa-dream-dashboard'))return false;
+  return /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName);
+}
+const hoaDreamStableRender=render;
+render=function(){
+  // Android shows/hides the keyboard by resizing the viewport. The legacy resize
+  // handler calls render(), so do not replace a focused dashboard field mid-edit.
+  if(hoaDreamHasFocusedEditor()){
+    hoaDreamInstallBottomTabs();
+    return;
+  }
+  const result=hoaDreamStableRender();
+  hoaDreamUpgradeDashboard();
+  return result;
+};
+hoaDreamUpgradeDashboard();
