@@ -4,7 +4,9 @@ import sharp from 'sharp';
 
 const ORIGIN = 'https://house-of-achen-life-hq.netlify.app';
 const OUT = 'dist';
-const PWA_VERSION = 'house-of-achen-pwa-v8';
+const PWA_VERSION = 'house-of-achen-pwa-v9';
+// Keep the installed app identity stable when refreshing artwork.
+const PWA_ID = '/house-of-achen-pwa-v7';
 const PWA_BG = '#FAF7FF';
 const pages = Array.from({ length: 20 }, (_, i) => `beauty-babe/pages/page-${String(i + 1).padStart(2, '0')}.png`);
 const mirrored = [
@@ -57,7 +59,7 @@ for (const file of approvedCatAssets) {
 await access(appIconSource);
 
 // Re-encode the approved House of Achen artwork as plain true-color RGBA PNGs.
-// The source artwork is an indexed/palette PNG; Android browsers were falling back to a generated letter icon.
+// Use the intact original artwork; encode install assets as portable RGBA PNGs.
 async function rgbaIcon(source, size, target) {
   await sharp(source)
     .resize(size, size, { fit: 'contain', background: { r: 250, g: 247, b: 255, alpha: 0 } })
@@ -67,8 +69,8 @@ async function rgbaIcon(source, size, target) {
 }
 
 const iconSourceMeta = await sharp(appIconSource).metadata();
-if (iconSourceMeta.format !== 'jpeg' || iconSourceMeta.width !== 512 || iconSourceMeta.height !== 512) {
-  throw new Error(`Invalid app icon source: expected a complete 512x512 JPEG, got ${iconSourceMeta.format || 'unknown'} ${iconSourceMeta.width || '?'}x${iconSourceMeta.height || '?'}`);
+if (iconSourceMeta.format !== 'jpeg' || iconSourceMeta.width !== iconSourceMeta.height || iconSourceMeta.width < 512) {
+  throw new Error(`Invalid app icon source: expected a complete square JPEG at least 512px, got ${iconSourceMeta.format || 'unknown'} ${iconSourceMeta.width || '?'}x${iconSourceMeta.height || '?'}`);
 }
 
 await rgbaIcon(appIconSource, 192, 'icon-192.png');
@@ -166,7 +168,7 @@ try {
   manifest.name = 'House of Achen';
   manifest.short_name = 'House Achen';
   manifest.description = 'House of Achen Life HQ';
-  manifest.id = `/${PWA_VERSION}`;
+  manifest.id = PWA_ID;
   manifest.start_url = `/?pwa=${PWA_VERSION}`;
   manifest.scope = '/';
   manifest.display = 'standalone';
@@ -181,7 +183,7 @@ try {
   ];
   await writeFile(manifestPath, JSON.stringify(manifest, null, 2));
 } catch (error) {
-  console.warn('Could not update manifest:', error.message);
+  throw new Error('Could not update manifest: ' + error.message);
 }
 
 const swPath = join(OUT, 'service-worker.js');
