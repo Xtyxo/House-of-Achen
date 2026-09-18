@@ -1,5 +1,5 @@
 {
-  "publishedAt": "2026-09-18T04:05:43.669115Z",
+  "publishedAt": "2026-09-18T04:12:00Z",
   "source": "Nova • ChatGPT Finances",
   "accounts": [
     {
@@ -317,6 +317,8 @@
   ],
   "accountRules": {
     "allyFeeFreeOverdraftLimit": 100,
-    "chimeSpotMeLimit": 40
+    "chimeSpotMeLimit": 40,
+    "chimeMyPayBorrowed": 160,
+    "chimeMyPayAvailable": 0
   }
 }

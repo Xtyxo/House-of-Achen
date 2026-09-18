@@ -8,6 +8,28 @@ const HOA_MANUAL_INVESTMENTS = [
   {id:'acct_climatize',name:'Climatize',institution:'Climatize',type:'Investments',balance:50.99}
 ];
 
+const HOA_BORROW_MODEL_VERSION = 2;
+function hoaEnsureBorrowModel(){
+  if(!state.settings) state.settings={};
+  if(Number(state.settings.hoaBorrowModelVersion||0)<HOA_BORROW_MODEL_VERSION){
+    state.settings.chimeMyPayBorrowed=160;
+    state.settings.chimeMyPayAvailable=0;
+    state.settings.hoaBorrowModelVersion=HOA_BORROW_MODEL_VERSION;
+  }
+}
+hoaEnsureBorrowModel();
+
+const hoaFinanceBaseApplyNovaLiveData=typeof applyNovaLiveData==='function'?applyNovaLiveData:null;
+if(hoaFinanceBaseApplyNovaLiveData){
+  applyNovaLiveData=function(live){
+    if(live?.accountRules){
+      if(live.accountRules.chimeMyPayAvailable!=null)state.settings.chimeMyPayAvailable=Math.max(0,num(live.accountRules.chimeMyPayAvailable));
+      if(live.accountRules.chimeMyPayBorrowed!=null)state.settings.chimeMyPayBorrowed=Math.max(0,num(live.accountRules.chimeMyPayBorrowed));
+    }
+    return hoaFinanceBaseApplyNovaLiveData(live);
+  };
+}
+
 function hoaIcon(name,size=18){
   const paths={
     home:'<path d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-5v-6h-5v6h-5A1.5 1.5 0 0 1 3 19.5z"/>',
@@ -54,15 +76,89 @@ function hoaRawLinkedCash(){return hoaSnapshotAccounts().reduce((s,a)=>s+rawBala
 function hoaPlanningCash(){return hoaSnapshotAccounts().reduce((s,a)=>s+(typeof accountCapacity==='function'?accountCapacity(a).planning:rawBalanceFor(a)),0)}
 function hoaManualInvestmentTotal(){return hoaManualInvestments().reduce((s,a)=>s+Math.max(0,rawBalanceFor(a)),0)}
 
+const hoaFinanceBaseAccountCapacity=accountCapacity;
+accountCapacity=function(a){
+  if(a?.id!=='acct_chime_check')return hoaFinanceBaseAccountCapacity(a);
+  const raw=rawBalanceFor(a);
+  const limit=Math.max(0,num(state.settings.chimeSpotMeLimit||40));
+  const used=Math.min(limit,Math.max(0,-raw));
+  const remaining=Math.max(0,limit-used);
+  const myPayAvailable=Math.max(0,num(state.settings.chimeMyPayAvailable||0));
+  const myPayBorrowed=Math.max(0,num(state.settings.chimeMyPayBorrowed||0));
+  const planning=raw<0&&raw>=-limit?0:raw;
+  return{
+    raw,
+    planning,
+    spendable:Math.max(0,raw)+remaining+myPayAvailable,
+    bufferRemaining:remaining,
+    myPay:myPayAvailable,
+    myPayBorrowed,
+    details:[
+      `SpotMe limit ${money(limit)}`,
+      `SpotMe used ${money(used)}`,
+      `SpotMe remaining ${money(remaining)}`,
+      `MyPay borrowed ${money(myPayBorrowed)}`,
+      `MyPay available ${money(myPayAvailable)}`
+    ]
+  };
+};
+function hoaBorrowingSummary(){
+  const chime=state.accounts.find(a=>a.id==='acct_chime_check');
+  const ally=state.accounts.find(a=>a.id==='acct_ally_spend');
+  const spotLimit=Math.max(0,num(state.settings.chimeSpotMeLimit||40));
+  const spotUsed=Math.min(spotLimit,Math.max(0,-rawBalanceFor(chime)));
+  const spotRemaining=Math.max(0,spotLimit-spotUsed);
+  const allyLimit=Math.max(0,num(state.settings.allyFeeFreeOverdraftLimit||100));
+  const allyUsed=Math.min(allyLimit,Math.max(0,-rawBalanceFor(ally)));
+  const allyRemaining=Math.max(0,allyLimit-allyUsed);
+  const myPayBorrowed=Math.max(0,num(state.settings.chimeMyPayBorrowed||0));
+  const myPayAvailable=Math.max(0,num(state.settings.chimeMyPayAvailable||0));
+  return{
+    spotLimit,spotUsed,spotRemaining,
+    allyLimit,allyUsed,allyRemaining,
+    myPayBorrowed,myPayAvailable,
+    borrowedNow:spotUsed+allyUsed+myPayBorrowed,
+    availableBorrowing:spotRemaining+allyRemaining+myPayAvailable
+  };
+}
 spendingPowerSummary=function(){
   const checkingIds=['acct_ally_spend','acct_current','acct_paypal','acct_chime_check','acct_capone_check','acct_varo_check'];
   const savingsIds=['acct_ally_save','acct_marcus','acct_chime_save','acct_capone_save','acct_varo_save'];
   const checking=checkingIds.map(id=>state.accounts.find(a=>a.id===id)).filter(Boolean);
   const savingsAccounts=savingsIds.map(id=>state.accounts.find(a=>a.id===id)).filter(Boolean);
-  const raw=checking.reduce((s,a)=>s+rawBalanceFor(a),0);
-  const spendable=checking.reduce((s,a)=>s+(typeof accountCapacity==='function'?accountCapacity(a).spendable:Math.max(0,rawBalanceFor(a))),0);
-  const savings=savingsAccounts.reduce((s,a)=>s+Math.max(0,rawBalanceFor(a)),0);
-  return{raw,spendable,savings,totalAccess:spendable+savings};
+  const raw=checking.reduce((sum,a)=>sum+rawBalanceFor(a),0);
+  const spendable=checking.reduce((sum,a)=>sum+(typeof accountCapacity==='function'?accountCapacity(a).spendable:Math.max(0,rawBalanceFor(a))),0);
+  const savings=savingsAccounts.reduce((sum,a)=>sum+Math.max(0,rawBalanceFor(a)),0);
+  const borrow=hoaBorrowingSummary();
+  const totalLinkedRaw=hoaSnapshotAccounts().reduce((sum,a)=>sum+rawBalanceFor(a),0);
+  return{raw,spendable,savings,totalAccess:spendable+savings,totalLinkedRaw,...borrow};
+};
+
+editBufferRules=function(){
+  openModal('Borrowing & buffer rules',`<div class="callout butter"><b>Borrowed</b> and <b>still available</b> are tracked separately. Borrowed MyPay is never added to spending power.</div><div class="form-grid" style="margin-top:14px"><div class="field"><label>Ally fee-free overdraft limit</label><input id="v7AllyBuffer" type="number" step="1" value="${num(state.settings.allyFeeFreeOverdraftLimit||100)}"></div><div class="field"><label>Chime SpotMe total limit</label><input id="v7Spot" type="number" step="1" value="${num(state.settings.chimeSpotMeLimit||40)}"></div><div class="field"><label>Chime MyPay already borrowed / owed</label><input id="v7MyPayBorrowed" type="number" step=".01" value="${num(state.settings.chimeMyPayBorrowed||0)}"></div><div class="field"><label>Chime MyPay still available</label><input id="v7MyPay" type="number" step=".01" value="${num(state.settings.chimeMyPayAvailable||0)}"></div></div>`,`<button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="saveBufferRules()">Save</button>`);
+};
+saveBufferRules=function(){
+  state.settings.allyFeeFreeOverdraftLimit=Math.max(0,num(document.getElementById('v7AllyBuffer').value));
+  state.settings.chimeSpotMeLimit=Math.max(0,num(document.getElementById('v7Spot').value));
+  state.settings.chimeMyPayBorrowed=Math.max(0,num(document.getElementById('v7MyPayBorrowed').value));
+  state.settings.chimeMyPayAvailable=Math.max(0,num(document.getElementById('v7MyPay').value));
+  state.settings.hoaBorrowModelVersion=HOA_BORROW_MODEL_VERSION;
+  saveState();
+  closeModal();
+  render();
+  toast('Borrowing figures updated');
+};
+
+const hoaFinanceBaseRenderAccounts=renderAccounts;
+renderAccounts=function(){
+  hoaFinanceBaseRenderAccounts();
+  const summary=spendingPowerSummary();
+  const grid=document.querySelector('#content .power-grid');
+  if(grid){
+    grid.innerHTML=`<div class="power-card"><span class="sub">All linked bank balances</span><b>${money(summary.totalLinkedRaw)}</b><div class="tinyline">Raw bank-reported balances only. No borrowing is added.</div></div><div class="power-card"><span class="sub">Borrowed now</span><b>${money(summary.borrowedNow)}</b><div class="tinyline">MyPay ${money(summary.myPayBorrowed)} + SpotMe used ${money(summary.spotUsed)} + Ally used ${money(summary.allyUsed)}.</div></div><div class="power-card accent"><span class="sub">Still available to borrow</span><b>${money(summary.availableBorrowing)}</b><div class="tinyline">Ally ${money(summary.allyRemaining)} + SpotMe ${money(summary.spotRemaining)} + MyPay ${money(summary.myPayAvailable)}.</div></div><div class="power-card"><span class="sub">Savings balances</span><b>${money(summary.savings)}</b><div class="tinyline">Raw connected savings balances.</div></div>`;
+  }
+  const note=document.querySelector('#content .capacity-note');
+  if(note)note.innerHTML='<strong>Important:</strong> MyPay already borrowed is a debt, not available cash. SpotMe and Ally show used and remaining capacity separately.';
 };
 
 function hoaCategoryOptions(selected=''){
