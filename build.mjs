@@ -4,7 +4,7 @@ import sharp from 'sharp';
 
 const ORIGIN = 'https://house-of-achen-life-hq.netlify.app';
 const OUT = 'dist';
-const PWA_VERSION = 'house-of-achen-pwa-v7';
+const PWA_VERSION = 'house-of-achen-pwa-v8';
 const PWA_BG = '#FAF7FF';
 const pages = Array.from({ length: 20 }, (_, i) => `beauty-babe/pages/page-${String(i + 1).padStart(2, '0')}.png`);
 const mirrored = [
@@ -24,7 +24,7 @@ const approvedCatAssets = [
   'assets/cats/diana-full.webp',
   'assets/cats/diana-head.webp',
 ];
-const appIconAssets = ['icon-192.png'];
+const appIconSource = 'app-icon-source.jpg';
 const overrideFiles = ['app.css', 'app.js', 'crochet.css', 'crochet.js', 'finance.css', 'finance.js', 'dashboard.css', 'dashboard.js'];
 
 async function ensureParent(file) {
@@ -54,12 +54,9 @@ for (const file of approvedCatAssets) {
   await copyFile(file, join(OUT, file));
 }
 
-for (const file of appIconAssets) {
-  await access(file);
-  await copyFile(file, join(OUT, file));
-}
+await access(appIconSource);
 
-// Re-encode the floral artwork as plain true-color RGBA PNGs.
+// Re-encode the approved House of Achen artwork as plain true-color RGBA PNGs.
 // The source artwork is an indexed/palette PNG; Android browsers were falling back to a generated letter icon.
 async function rgbaIcon(source, size, target) {
   await sharp(source)
@@ -69,20 +66,20 @@ async function rgbaIcon(source, size, target) {
     .toFile(join(OUT, target));
 }
 
-const iconSourceMeta = await sharp('icon-192.png').metadata();
-if (iconSourceMeta.format !== 'png' || iconSourceMeta.width !== 96 || iconSourceMeta.height !== 96) {
-  throw new Error(`Invalid app icon source: expected a complete 96x96 PNG, got ${iconSourceMeta.format || 'unknown'} ${iconSourceMeta.width || '?'}x${iconSourceMeta.height || '?'}`);
+const iconSourceMeta = await sharp(appIconSource).metadata();
+if (iconSourceMeta.format !== 'jpeg' || iconSourceMeta.width !== 512 || iconSourceMeta.height !== 512) {
+  throw new Error(`Invalid app icon source: expected a complete 512x512 JPEG, got ${iconSourceMeta.format || 'unknown'} ${iconSourceMeta.width || '?'}x${iconSourceMeta.height || '?'}`);
 }
 
-await rgbaIcon('icon-192.png', 192, 'icon-192.png');
-await rgbaIcon('icon-192.png', 512, 'icon-512.png');
-await rgbaIcon('icon-192.png', 192, 'pwa-icon-192.png');
-await rgbaIcon('icon-192.png', 512, 'pwa-icon-512.png');
-await rgbaIcon('icon-192.png', 96, 'favicon.png');
-await rgbaIcon('icon-192.png', 180, 'apple-touch-icon.png');
+await rgbaIcon(appIconSource, 192, 'icon-192.png');
+await rgbaIcon(appIconSource, 512, 'icon-512.png');
+await rgbaIcon(appIconSource, 192, 'pwa-icon-192.png');
+await rgbaIcon(appIconSource, 512, 'pwa-icon-512.png');
+await rgbaIcon(appIconSource, 96, 'favicon.png');
+await rgbaIcon(appIconSource, 180, 'apple-touch-icon.png');
 
 // Genuine Android maskable icon: preserve the floral artwork inside the central safe zone.
-const maskableArtwork = await sharp('icon-192.png')
+const maskableArtwork = await sharp(appIconSource)
   .resize(380, 380, { fit: 'contain', background: { r: 250, g: 247, b: 255, alpha: 0 } })
   .ensureAlpha()
   .png({ palette: false, compressionLevel: 9 })
