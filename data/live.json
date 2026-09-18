@@ -1,5 +1,5 @@
 {
-  "publishedAt": "2026-09-18T04:12:00Z",
+  "publishedAt": "2026-09-18T06:16:53Z",
   "source": "Nova • ChatGPT Finances",
   "accounts": [
     {
@@ -10,7 +10,8 @@
       "rawBalance": 3.87,
       "currentBalance": 3.87,
       "connected": true,
-      "snapshot": true
+      "snapshot": true,
+      "asOf": "2026-09-18"
     },
     {
       "id": "acct_varo_save",
@@ -20,7 +21,8 @@
       "rawBalance": 0,
       "currentBalance": 0,
       "connected": true,
-      "snapshot": true
+      "snapshot": true,
+      "asOf": "2026-09-18"
     },
     {
       "id": "acct_varo_check",
@@ -30,7 +32,8 @@
       "rawBalance": 0.07,
       "currentBalance": 0.07,
       "connected": true,
-      "snapshot": true
+      "snapshot": true,
+      "asOf": "2026-09-18"
     },
     {
       "id": "acct_capone_check",
@@ -40,7 +43,8 @@
       "rawBalance": -16.75,
       "currentBalance": -16.75,
       "connected": true,
-      "snapshot": true
+      "snapshot": true,
+      "asOf": "2026-09-18"
     },
     {
       "id": "acct_capone_save",
@@ -50,7 +54,8 @@
       "rawBalance": 0.09,
       "currentBalance": 0.09,
       "connected": true,
-      "snapshot": true
+      "snapshot": true,
+      "asOf": "2026-09-18"
     },
     {
       "id": "acct_marcus",
@@ -60,27 +65,30 @@
       "rawBalance": 85.29,
       "currentBalance": 85.29,
       "connected": true,
-      "snapshot": true
+      "snapshot": true,
+      "asOf": "2026-09-18"
     },
     {
       "id": "acct_chime_save",
       "name": "Chime Savings",
       "institution": "Chime",
       "type": "Savings",
-      "rawBalance": 145.69,
-      "currentBalance": 145.69,
+      "rawBalance": 158.33,
+      "currentBalance": 158.33,
       "connected": true,
-      "snapshot": true
+      "snapshot": true,
+      "asOf": "2026-09-18"
     },
     {
       "id": "acct_chime_check",
       "name": "Chime Checking",
       "institution": "Chime",
       "type": "Bank",
-      "rawBalance": -4.5,
-      "currentBalance": -4.5,
+      "rawBalance": 0,
+      "currentBalance": 0,
       "connected": true,
-      "snapshot": true
+      "snapshot": true,
+      "asOf": "2026-09-18"
     },
     {
       "id": "acct_ally_save",
@@ -90,7 +98,8 @@
       "rawBalance": 0,
       "currentBalance": 0,
       "connected": true,
-      "snapshot": true
+      "snapshot": true,
+      "asOf": "2026-09-18"
     },
     {
       "id": "acct_ally_spend",
@@ -100,7 +109,8 @@
       "rawBalance": 23.41,
       "currentBalance": 23.41,
       "connected": true,
-      "snapshot": true
+      "snapshot": true,
+      "asOf": "2026-09-18"
     },
     {
       "id": "acct_current",
@@ -110,10 +120,41 @@
       "rawBalance": 0.04,
       "currentBalance": 0.04,
       "connected": true,
-      "snapshot": true
+      "snapshot": true,
+      "asOf": "2026-09-18"
     }
   ],
   "bankTransactions": [
+    {
+      "id": "dvjp9Bn7rds9PBojkwZgtJwDbLRoyYtKQV6pB",
+      "date": "2026-09-18",
+      "account": "Chime Savings Account",
+      "name": "Chime Transfer",
+      "merchant": "Chime transfer",
+      "amount": 10,
+      "pending": false,
+      "providerCategory": "Transfers • Other transfer out"
+    },
+    {
+      "id": "M0b4J58oMzToVzkDK6p8IzDOpodPMZfXpqawX",
+      "date": "2026-09-18",
+      "account": "Chime account",
+      "name": "Transfer from Chime Savings Account",
+      "merchant": "Transfer from Chime Savings Account",
+      "amount": -10,
+      "pending": false,
+      "providerCategory": "Transfers • Account transfer in"
+    },
+    {
+      "id": "w3EMd7vZnaU7P6v934RLIbONownKL4FKvqzXQ",
+      "date": "2026-09-17",
+      "account": "Chime Savings Account",
+      "name": "Chime Transfer",
+      "merchant": "Chime transfer",
+      "amount": -22.64,
+      "pending": false,
+      "providerCategory": "Transfers • Other transfer in"
+    },
     {
       "id": "vBEMVRAJQ4cZ4Np937yRF9N4Md6m4ahPoNbyKw",
       "date": "2026-09-17",
@@ -138,11 +179,11 @@
       "id": "qLgMxaBKVAheNg1nzYOAsZXyOZADeaI1JkaK0",
       "date": "2026-09-17",
       "account": "Chime account",
-      "name": "Transfer from Chime Savings",
+      "name": "Transfer from Chime Savings Account",
       "merchant": "Transfer from Chime Savings Account",
       "amount": -30,
       "pending": false,
-      "providerCategory": "Transfers • Savings transfer in"
+      "providerCategory": "Transfers • Account transfer in"
     },
     {
       "id": "geoPpAoXJ9s3BXKPDZe9UraANLAKk1IKKkmMv",
@@ -155,14 +196,34 @@
       "providerCategory": "Transfers • Other transfer out"
     },
     {
+      "id": "RxKZJm8Qpzik0mrZweXxfj9mq8R14MIeq5mgq",
+      "date": "2026-09-17",
+      "account": "Chime account",
+      "name": "Uber Eats",
+      "merchant": "Uber Eats",
+      "amount": -27.14,
+      "pending": false,
+      "providerCategory": "Dining & drinks • Delivery"
+    },
+    {
+      "id": "Eq4ybBn35zhmqoDbzE7aUXmDnYbEKQFQnvbNd",
+      "date": "2026-09-17",
+      "account": "Chime account",
+      "name": "Transfer to Chime Savings Account",
+      "merchant": "Transfer to Chime Savings Account",
+      "amount": 22.64,
+      "pending": false,
+      "providerCategory": "Transfers • Savings transfer out"
+    },
+    {
       "id": "BDOqV64LJzuxApwZV9jRU1B0g1ENVjUv9LxKZ",
       "date": "2026-09-17",
       "account": "Chime account",
-      "name": "Transfer from Chime Savings",
+      "name": "Transfer from Chime Savings Account",
       "merchant": "Transfer from Chime Savings Account",
       "amount": -10,
       "pending": false,
-      "providerCategory": "Transfers • Savings transfer in"
+      "providerCategory": "Transfers • Account transfer in"
     },
     {
       "id": "ALRPNvrwxzh3yZdEjk1PSp6mEZznmQCxdgyp3R",
@@ -182,7 +243,7 @@
       "merchant": "Round Up from Credit Card",
       "amount": -0.9,
       "pending": false,
-      "providerCategory": "Transfers • Account transfer in"
+      "providerCategory": "Transfers • Other transfer in"
     },
     {
       "id": "7AjxDgjMdnIeE5VAaR1qHwy4nX4E5Rf55JA4O",
@@ -263,56 +324,6 @@
       "amount": -21.94,
       "pending": false,
       "providerCategory": "Transfers • Other transfer in"
-    },
-    {
-      "id": "mZ8E4PDLb3hZE8y7Lz9ETnkOewj0XVHBmJqKb",
-      "date": "2026-09-16",
-      "account": "Chime account",
-      "name": "Transfer from Chime Savings",
-      "merchant": "Transfer from Chime Savings Account",
-      "amount": -7.6,
-      "pending": false,
-      "providerCategory": "Transfers • Savings transfer in"
-    },
-    {
-      "id": "ke9yrw9dZ0skXZNpxLYVhOE74PJLqeTZmZRJnd",
-      "date": "2026-09-16",
-      "account": "PayPal",
-      "name": "Uber",
-      "merchant": "Uber",
-      "amount": 21.81,
-      "pending": false,
-      "providerCategory": "Transportation • Ride shares"
-    },
-    {
-      "id": "aKoEmP78vzIwdXMAznp7s6j5DJA750t3nYMDxZ",
-      "date": "2026-09-16",
-      "account": "Chime account",
-      "name": "RDS Vending & Coffee",
-      "merchant": "RDS Vending & Coffee",
-      "amount": 2.1,
-      "pending": false,
-      "providerCategory": "Dining & drinks • Vending"
-    },
-    {
-      "id": "YLoEp3ZPmzh6P45YjrQPSZB3yPa0xMUJng16r",
-      "date": "2026-09-16",
-      "account": "Chime Savings Account",
-      "name": "Chime Transfer",
-      "merchant": "Chime transfer",
-      "amount": 7.6,
-      "pending": false,
-      "providerCategory": "Transfers • Other transfer out"
-    },
-    {
-      "id": "P4aJbxmOQzcVz405DQOztboe9DMmJAfar3JKP",
-      "date": "2026-09-16",
-      "account": "Chime account",
-      "name": "Transfer from Chime Savings",
-      "merchant": "Transfer from Chime Savings Account",
-      "amount": -40,
-      "pending": false,
-      "providerCategory": "Transfers • Savings transfer in"
     }
   ],
   "accountRules": {

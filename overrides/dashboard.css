@@ -135,3 +135,13 @@ body.hoa-dream-home .content{padding-top:16px}
   .hoa-dream-music-actions{grid-column:1/-1;display:grid;grid-template-columns:1fr auto;width:100%}
   .hoa-dream-music-actions button{min-height:38px}
 }
+
+
+/* Dashboard pass 2 */
+.hoa-dream-money-strip{grid-template-columns:repeat(4,minmax(0,1fr))}
+.hoa-dream-money-strip button{position:relative}.hoa-dream-money-strip small{display:block;margin-top:4px;color:#8a7d90;font-size:9px;line-height:1.25;text-transform:none;letter-spacing:0;font-weight:600}
+.hoa-available-breakdown{border:1px solid rgba(101,73,137,.16);border-radius:20px;background:linear-gradient(145deg,rgba(255,255,255,.97),rgba(249,242,255,.96));padding:14px;box-shadow:0 12px 30px rgba(70,49,98,.08)}
+.hoa-available-breakdown[hidden]{display:none!important}.hoa-formula-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.hoa-formula-grid>div{border:1px solid rgba(104,74,136,.12);border-radius:13px;background:#fff;padding:10px;min-width:0}.hoa-formula-grid span,.hoa-formula-grid b,.hoa-formula-grid small{display:block}.hoa-formula-grid span{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#82768a;font-weight:850}.hoa-formula-grid b{margin-top:3px;color:#312944;font:700 17px Georgia,serif}.hoa-formula-grid small{margin-top:3px;color:#83768a;font-size:9px;line-height:1.3}.hoa-formula-grid .hoa-formula-total{background:linear-gradient(145deg,#fff2f8,#f1ebff);border-color:#dfc9e8}.hoa-formula-grid .hoa-formula-safe{background:linear-gradient(145deg,#f6fff9,#e8f5ed)}.hoa-formula-foot{margin-top:10px;padding:10px 12px;border-radius:12px;background:#fff7e7;color:#6e5d47;font-size:10px;line-height:1.45}
+.hoa-mood-history-card{padding:15px}.hoa-mood-chart-wrap{height:220px}.hoa-mood-chart-wrap canvas{width:100%!important;height:100%!important;display:block}
+@media(max-width:760px){.hoa-dream-money-strip{grid-template-columns:repeat(2,minmax(0,1fr))}.hoa-formula-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:430px){.hoa-formula-grid{grid-template-columns:1fr}.hoa-dream-chart-wrap{height:230px}}

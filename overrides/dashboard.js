@@ -243,3 +243,135 @@ render=function(){
   return result;
 };
 hoaDreamUpgradeDashboard();
+
+
+// Dashboard pass 2: transparent paycheck math, account charts, and 30-day mood history.
+function hoaDashboardPaycheckBreakdown(p,c){
+  if(!p)return '<div class="hoa-formula-empty">No current paycheck is selected.</div>';
+  const moved=(p.allocations||[]).reduce((sum,a)=>sum+num(a.moved),0);
+  const logged=num(c.logged);
+  const cushion=num(p.cushion);
+  return `<div class="hoa-formula-grid">
+    <div><span>Net pay</span><b>${money(p.netPay)}</b></div>
+    <div><span>Starting checking</span><b>${money(p.startingChecking)}</b></div>
+    <div><span>Other income</span><b>${money(p.otherIncome)}</b><small>Manual paycheck input — bank inflows are not auto-added here.</small></div>
+    <div class="hoa-formula-total"><span>Available Cash</span><b>${money(c.available)}</b><small>${money(p.netPay)} + ${money(p.startingChecking)} + ${money(p.otherIncome)}</small></div>
+    <div><span>Actually moved</span><b>− ${money(moved)}</b></div>
+    <div><span>Logged spending</span><b>− ${money(logged)}</b></div>
+    <div class="hoa-formula-total"><span>Actual Cash Left</span><b>${money(c.actualCashLeft)}</b><small>Available Cash − moved − logged spending</small></div>
+    <div><span>Still need to fund</span><b>− ${money(c.stillNeed)}</b></div>
+    <div><span>Keep-in-checking cushion</span><b>− ${money(cushion)}</b></div>
+    <div class="hoa-formula-total hoa-formula-safe"><span>Safe to Spend</span><b>${money(c.safe)}</b><small>Actual Cash Left − still needed − cushion</small></div>
+  </div><div class="hoa-formula-foot"><b>House of Achen spreadsheet logic:</b> transfers between your own bank accounts do not create new paycheck income. If Other Income is wrong, edit the paycheck input instead of letting a bank transfer silently change the formula.</div>`;
+}
+function hoaToggleAvailableBreakdown(){
+  const panel=document.getElementById('hoaAvailableBreakdown');
+  const btn=document.getElementById('hoaAvailableCashBtn');
+  if(!panel)return;
+  const opening=panel.hasAttribute('hidden');
+  if(opening)panel.removeAttribute('hidden');else panel.setAttribute('hidden','');
+  btn?.setAttribute('aria-expanded',opening?'true':'false');
+}
+function hoaDashboardBankAccounts(){
+  return (state.accounts||[]).filter(a=>a&&(a.snapshot===true||a.connected===true)&&a.type!=='Investment');
+}
+function hoaDashboardAccountPieItems(){
+  const palette=['#c65a94','#7b68bd','#7898d9','#73a98c','#d99672','#a879bd','#6d8fa8','#d6a15f'];
+  return hoaDashboardBankAccounts()
+    .map((a,i)=>({label:hoaDreamShortLabel(a.name||a.institution),value:Math.max(0,typeof rawBalanceFor==='function'?rawBalanceFor(a):num(a.currentBalance??a.rawBalance)),color:palette[i%palette.length]}))
+    .filter(x=>x.value>0);
+}
+function hoaSignedAccountBars(canvas){
+  if(!canvas)return;
+  const rows=hoaDashboardBankAccounts().map(a=>({label:hoaDreamShortLabel(a.name||a.institution),value:typeof rawBalanceFor==='function'?rawBalanceFor(a):num(a.currentBalance??a.rawBalance)}));
+  const {ctx,W,H}=prepCanvas(canvas),pad={l:54,r:14,t:22,b:52},cw=W-pad.l-pad.r,ch=H-pad.t-pad.b;
+  if(!rows.length){ctx.fillStyle='#8a7d91';ctx.textAlign='center';ctx.font='12px system-ui';ctx.fillText('No linked balances yet',W/2,H/2);return;}
+  let min=Math.min(0,...rows.map(r=>r.value)),max=Math.max(0,...rows.map(r=>r.value));
+  if(max===min){max+=1;min-=1;}
+  const y=v=>pad.t+(max-v)/(max-min)*ch,zero=y(0);
+  ctx.strokeStyle='#eadff0';ctx.lineWidth=1;
+  for(let i=0;i<5;i++){const val=max-(max-min)*i/4,gy=y(val);ctx.beginPath();ctx.moveTo(pad.l,gy);ctx.lineTo(W-pad.r,gy);ctx.stroke();}
+  ctx.strokeStyle='#8f8398';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(pad.l,zero);ctx.lineTo(W-pad.r,zero);ctx.stroke();
+  const groupW=cw/rows.length,bw=Math.max(8,Math.min(28,groupW*.56));
+  rows.forEach((r,i)=>{
+    const x=pad.l+i*groupW+groupW/2-bw/2,vy=y(r.value),top=Math.min(vy,zero),h=Math.max(1,Math.abs(vy-zero));
+    ctx.fillStyle=r.value<0?'#d45c83':'#806ac2';ctx.fillRect(x,top,bw,h);
+    ctx.fillStyle='#6f6478';ctx.font='8.5px system-ui';ctx.textAlign='center';ctx.fillText(r.label,pad.l+i*groupW+groupW/2,H-27);
+    ctx.fillStyle=r.value<0?'#b9486f':'#5f4e97';ctx.font='8px system-ui';ctx.fillText(money(r.value),pad.l+i*groupW+groupW/2,r.value<0?Math.min(H-pad.b+13,vy+12):Math.max(10,vy-5));
+  });
+  ctx.textAlign='right';ctx.font='9px system-ui';ctx.fillStyle='#7f7388';ctx.fillText(money(max),pad.l-5,pad.t+3);ctx.fillText(money(min),pad.l-5,pad.t+ch);
+}
+const HOA_MOOD_SCORES={low:1,quiet:2,okay:3,good:4,wired:5};
+const HOA_MOOD_LABELS=['','Low','Quiet','Okay','Good','Wired'];
+function hoaEnsureMoodHistory(){
+  if(!state.ui)state.ui={};
+  if(!Array.isArray(state.ui.moodHistory))state.ui.moodHistory=[];
+  const mood=state.ui.chillMood;
+  if(mood&&HOA_MOOD_SCORES[mood]){
+    const today=todayISO();
+    if(!state.ui.moodHistory.some(x=>x.date===today))state.ui.moodHistory.push({date:today,mood});
+  }
+  const cutoff=new Date();cutoff.setDate(cutoff.getDate()-60);
+  const cutoffIso=dateISO(cutoff);
+  state.ui.moodHistory=state.ui.moodHistory.filter(x=>x?.date>=cutoffIso&&HOA_MOOD_SCORES[x.mood]);
+}
+function hoaMoodRows30(){
+  hoaEnsureMoodHistory();
+  const cutoff=new Date();cutoff.setDate(cutoff.getDate()-29);
+  const cutoffIso=dateISO(cutoff);
+  return state.ui.moodHistory.filter(x=>x.date>=cutoffIso).sort((a,b)=>a.date.localeCompare(b.date)).map(x=>({label:parseDate(x.date).toLocaleDateString(undefined,{month:'numeric',day:'numeric'}),value:HOA_MOOD_SCORES[x.mood],mood:x.mood}));
+}
+function hoaMoodLine(canvas){
+  if(!canvas)return;
+  const rows=hoaMoodRows30(),{ctx,W,H}=prepCanvas(canvas),pad={l:54,r:18,t:24,b:40},cw=W-pad.l-pad.r,ch=H-pad.t-pad.b;
+  ctx.font='9px system-ui';ctx.fillStyle='#766c80';ctx.textAlign='right';
+  for(let s=1;s<=5;s++){const y=pad.t+(5-s)/4*ch;ctx.strokeStyle='#eee4f1';ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();ctx.fillStyle='#766c80';ctx.fillText(HOA_MOOD_LABELS[s],pad.l-7,y+3);}
+  if(!rows.length){ctx.textAlign='center';ctx.font='12px system-ui';ctx.fillText('Mood tracking starts when you choose a mood.',W/2,H/2);return;}
+  const pts=rows.map((r,i)=>({x:pad.l+(rows.length===1?cw/2:i*cw/(rows.length-1)),y:pad.t+(5-r.value)/4*ch,r}));
+  ctx.strokeStyle='#c75b98';ctx.lineWidth=3;ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();
+  pts.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,4.5,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle='#7c63b8';ctx.lineWidth=2.5;ctx.stroke();});
+  ctx.fillStyle='#766c80';ctx.textAlign='center';ctx.font='8.5px system-ui';pts.forEach((p,i)=>{if(rows.length<=10||i%Math.ceil(rows.length/8)===0)ctx.fillText(p.r.label,p.x,H-17);});
+}
+const hoaDashboardPass2Base=renderDashboard;
+renderDashboard=function(){
+  hoaDashboardPass2Base();
+  hoaEnsureMoodHistory();
+  const root=document.querySelector('.hoa-dream-dashboard');
+  if(!root)return;
+  const p=typeof selectedPaycheck==='function'?selectedPaycheck():null;
+  const c=typeof calcPaycheck==='function'?calcPaycheck(p):{available:0,safe:0,actualCashLeft:0,stillNeed:0,logged:0};
+  const moneyStrip=root.querySelector('.hoa-dream-money-strip');
+  if(moneyStrip){
+    moneyStrip.innerHTML=`
+      <button id="hoaAvailableCashBtn" onclick="hoaToggleAvailableBreakdown()" aria-expanded="false"><span>Available Cash</span><b>${money(c.available)}</b><small>Tap to see exactly why</small></button>
+      <button onclick="nav('payday')"><span>Safe to Spend</span><b>${money(c.safe)}</b><small>Spreadsheet-style final amount</small></button>
+      <button onclick="nav('payday')"><span>Currently Sitting</span><b>${money(c.actualCashLeft)}</b><small>After moved + logged spending</small></button>
+      <button onclick="nav('payday')"><span>Spoken For</span><b>${money(c.stillNeed)}</b><small>Still needs a job</small></button>`;
+    let breakdown=document.getElementById('hoaAvailableBreakdown');
+    if(!breakdown){breakdown=document.createElement('section');breakdown.id='hoaAvailableBreakdown';breakdown.className='hoa-available-breakdown';breakdown.hidden=true;moneyStrip.insertAdjacentElement('afterend',breakdown);}
+    breakdown.innerHTML=hoaDashboardPaycheckBreakdown(p,c);
+  }
+  const charts=root.querySelector('.hoa-dream-charts');
+  if(charts){
+    charts.innerHTML=`<div class="hoa-dream-chart-card"><div class="hoa-dream-card-head"><div><h2>Account Balance Mix</h2><p>Positive linked balances by account. Negative balances stay out of the pie and appear in the bar chart.</p></div>${hoaIcon('chart',20)}</div><div class="hoa-dream-chart-wrap"><canvas id="hoaAccountPieChart"></canvas></div></div>
+    <div class="hoa-dream-chart-card"><div class="hoa-dream-card-head"><div><h2>Account Balances</h2><p>Signed balances — anything below zero drops under the baseline.</p></div>${hoaIcon('bank',20)}</div><div class="hoa-dream-chart-wrap"><canvas id="hoaAccountBalanceBar"></canvas></div></div>`;
+  }
+  if(!root.querySelector('.hoa-mood-history-card')){
+    const chartSection=root.querySelector('.hoa-dream-charts');
+    chartSection?.insertAdjacentHTML('afterend',`<section class="hoa-dream-panel hoa-mood-history-card"><div class="hoa-dream-section-head"><div><h2>30-Day Mood Pattern</h2><p>Your check-ins build one day at a time. Changing today's mood updates today's point instead of creating duplicates.</p></div></div><div class="hoa-mood-chart-wrap"><canvas id="hoaMoodHistoryChart"></canvas></div></section>`);
+  }
+  requestAnimationFrame(()=>{
+    try{pie(document.getElementById('hoaAccountPieChart'),hoaDashboardAccountPieItems());}catch(e){console.warn('Account pie',e);}
+    try{hoaSignedAccountBars(document.getElementById('hoaAccountBalanceBar'));}catch(e){console.warn('Account bar',e);}
+    try{hoaMoodLine(document.getElementById('hoaMoodHistoryChart'));}catch(e){console.warn('Mood history',e);}
+  });
+};
+setChillMood=function(v){
+  if(!state.ui)state.ui={};
+  state.ui.chillMood=v;
+  if(!Array.isArray(state.ui.moodHistory))state.ui.moodHistory=[];
+  const today=todayISO(),existing=state.ui.moodHistory.find(x=>x.date===today);
+  if(existing)existing.mood=v;else state.ui.moodHistory.push({date:today,mood:v});
+  saveState(false);
+  render();
+};

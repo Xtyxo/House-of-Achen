@@ -307,3 +307,34 @@ calcPaycheck=function(p){
   const safe=Math.max(0,actualCashLeft-stillNeed-num(p.cushion));
   return {...base,available,moved,logged,actualCashLeft,stillNeed,safe,quickRemaining,allocationRemaining};
 };
+
+
+// Dashboard pass 2: persistent Ignore choice for bank rows.
+paydeskCategoryOptions=function(selected=''){
+  const names=[];
+  (state.settings.categories||[]).forEach(c=>{if(c?.name&&!names.includes(c.name))names.push(c.name)});
+  const p=selectedPaycheck();
+  (p?.allocations||[]).forEach(a=>{if(a.name&&!names.includes(a.name))names.push(a.name)});
+  (p?.quickSpend||[]).forEach(q=>{if(q.name&&!names.includes(q.name))names.push(q.name)});
+  return `<option value="">— choose Paycheck Desk category —</option><option value="__IGNORE__" ${selected==='__IGNORE__'?'selected':''}>Ignore — do not import</option>`+
+    names.map(n=>`<option value="${esc(n)}" ${n===selected?'selected':''}>${esc(n)}</option>`).join('');
+};
+const hoaPass2BaseSetBankCategory=setBankCategory;
+setBankCategory=function(id,val){
+  const t=state.bankTransactions.find(x=>x.id===id);
+  if(!t)return;
+  t.paydeskCategory=val;
+  saveState(false);
+  if(val==='__IGNORE__')toast('Ignored — this bank row will stay out of Overall Spending on future refreshes.');
+  renderSpending();
+};
+const hoaPass2BaseSpendingRows=hoaSpendingBankRows;
+hoaSpendingBankRows=function(){
+  return hoaPass2BaseSpendingRows().filter(t=>t.paydeskCategory!=='__IGNORE__');
+};
+const hoaPass2BaseAddBankTx=addBankTxToLedger;
+addBankTxToLedger=function(id){
+  const t=state.bankTransactions.find(x=>x.id===id);
+  if(t?.paydeskCategory==='__IGNORE__')return toast('This bank row is marked Ignore.');
+  return hoaPass2BaseAddBankTx(id);
+};
