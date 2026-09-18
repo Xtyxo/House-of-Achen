@@ -4,10 +4,6 @@ import sharp from 'sharp';
 
 const ORIGIN = 'https://house-of-achen-life-hq.netlify.app';
 const OUT = 'dist';
-const PWA_VERSION = 'house-of-achen-pwa-v9';
-// Keep the installed app identity stable when refreshing artwork.
-const PWA_ID = '/house-of-achen-pwa-v7';
-const PWA_BG = '#FAF7FF';
 const pages = Array.from({ length: 20 }, (_, i) => `beauty-babe/pages/page-${String(i + 1).padStart(2, '0')}.png`);
 const mirrored = [
   'index.html',
@@ -57,46 +53,16 @@ for (const file of approvedCatAssets) {
 }
 
 await access(appIconSource);
-
-// Re-encode the approved House of Achen artwork as plain true-color RGBA PNGs.
-// Use the intact original artwork; encode install assets as portable RGBA PNGs.
-async function rgbaIcon(source, size, target) {
-  await sharp(source)
-    .resize(size, size, { fit: 'contain', background: { r: 250, g: 247, b: 255, alpha: 0 } })
-    .ensureAlpha()
+const iconMeta = await sharp(appIconSource).metadata();
+if (iconMeta.format !== 'jpeg' || iconMeta.width !== iconMeta.height || iconMeta.width < 512) {
+  throw new Error(`Invalid app icon source: expected square JPEG at least 512px, got ${iconMeta.format || 'unknown'} ${iconMeta.width || '?'}x${iconMeta.height || '?'}`);
+}
+for (const size of [192, 512]) {
+  await sharp(appIconSource)
+    .resize(size, size, { fit: 'cover' })
     .png({ palette: false, compressionLevel: 9 })
-    .toFile(join(OUT, target));
+    .toFile(join(OUT, `icon-${size}.png`));
 }
-
-const iconSourceMeta = await sharp(appIconSource).metadata();
-if (iconSourceMeta.format !== 'jpeg' || iconSourceMeta.width !== iconSourceMeta.height || iconSourceMeta.width < 512) {
-  throw new Error(`Invalid app icon source: expected a complete square JPEG at least 512px, got ${iconSourceMeta.format || 'unknown'} ${iconSourceMeta.width || '?'}x${iconSourceMeta.height || '?'}`);
-}
-
-await rgbaIcon(appIconSource, 192, 'icon-192.png');
-await rgbaIcon(appIconSource, 512, 'icon-512.png');
-await rgbaIcon(appIconSource, 192, 'pwa-icon-192.png');
-await rgbaIcon(appIconSource, 512, 'pwa-icon-512.png');
-await rgbaIcon(appIconSource, 96, 'favicon.png');
-await rgbaIcon(appIconSource, 180, 'apple-touch-icon.png');
-
-// Genuine Android maskable icon: preserve the floral artwork inside the central safe zone.
-const maskableArtwork = await sharp(appIconSource)
-  .resize(380, 380, { fit: 'contain', background: { r: 250, g: 247, b: 255, alpha: 0 } })
-  .ensureAlpha()
-  .png({ palette: false, compressionLevel: 9 })
-  .toBuffer();
-await sharp({
-  create: {
-    width: 512,
-    height: 512,
-    channels: 4,
-    background: { r: 250, g: 247, b: 255, alpha: 1 }
-  }
-})
-  .composite([{ input: maskableArtwork, gravity: 'centre' }])
-  .png({ palette: false, compressionLevel: 9 })
-  .toFile(join(OUT, 'pwa-maskable-512.png'));
 
 await mkdir(join(OUT, 'overrides'), { recursive: true });
 for (const file of overrideFiles) {
@@ -117,25 +83,17 @@ html = html.replace(
   "document.getElementById('lunaIconMount').innerHTML=`<img class=\"hoa-cat hoa-cat-head hoa-luna-head\" src=\"./assets/cats/luna-head.webp\" alt=\"Luna, black cat with soft green eyes and a gold crescent moon\" draggable=\"false\" decoding=\"async\">`;"
 );
 
-// Canonical PWA identity. Remove stale declarations, then add fresh Android + shortcut fallbacks.
-html = html.replaceAll('icon.svg', 'pwa-icon-512.png');
+// Restore the simple static icon wiring that previously worked on Android.
 html = html.replace(/<link\b[^>]*rel=["'][^"']*(?:shortcut\s+icon|apple-touch-icon|icon)[^"']*["'][^>]*>\s*/gi, '');
 html = html.replace(/<link\b[^>]*rel=["']manifest["'][^>]*>\s*/gi, '');
-html = html.replace(/<meta\b[^>]*name=["'](?:application-name|mobile-web-app-capable|apple-mobile-web-app-capable|apple-mobile-web-app-title)["'][^>]*>\s*/gi, '');
 if (/<title>[\s\S]*?<\/title>/i.test(html)) html = html.replace(/<title>[\s\S]*?<\/title>/i, '<title>House of Achen</title>');
-else html = html.replace('</head>', '  <title>House of Achen</title>\n</head>');
-const pwaHeadTags = [
-  `<link rel="shortcut icon" type="image/png" href="/favicon.png?v=${PWA_VERSION}">`,
-  `<link rel="icon" type="image/png" sizes="192x192" href="/pwa-icon-192.png?v=${PWA_VERSION}">`,
-  `<link rel="icon" type="image/png" sizes="512x512" href="/pwa-icon-512.png?v=${PWA_VERSION}">`,
-  `<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=${PWA_VERSION}">`,
-  `<link rel="manifest" href="/manifest.webmanifest?v=${PWA_VERSION}">`,
-  '<meta name="application-name" content="House of Achen">',
-  '<meta name="mobile-web-app-capable" content="yes">',
-  '<meta name="apple-mobile-web-app-capable" content="yes">',
-  '<meta name="apple-mobile-web-app-title" content="House of Achen">',
+const iconHeadTags = [
+  '<link rel="manifest" href="manifest.webmanifest">',
+  '<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">',
+  '<link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">',
+  '<link rel="apple-touch-icon" href="./icon-512.png">'
 ].join('\n  ');
-html = html.replace('</head>', `  ${pwaHeadTags}\n</head>`);
+html = html.replace('</head>', `  ${iconHeadTags}\n</head>`);
 
 const cssTags = [
   '<link rel="stylesheet" href="./overrides/app.css">',
@@ -167,19 +125,17 @@ try {
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
   manifest.name = 'House of Achen';
   manifest.short_name = 'House Achen';
-  manifest.description = 'House of Achen Life HQ';
-  manifest.id = PWA_ID;
-  manifest.start_url = `/?pwa=${PWA_VERSION}`;
+  manifest.start_url = '/';
   manifest.scope = '/';
   manifest.display = 'standalone';
-  manifest.display_override = ['standalone', 'minimal-ui'];
-  manifest.prefer_related_applications = false;
   manifest.theme_color = '#29224D';
-  manifest.background_color = PWA_BG;
+  manifest.background_color = '#FAF7FF';
+  delete manifest.id;
+  delete manifest.display_override;
+  delete manifest.prefer_related_applications;
   manifest.icons = [
-    { src: `/pwa-icon-192.png?v=${PWA_VERSION}`, sizes: '192x192', type: 'image/png', purpose: 'any' },
-    { src: `/pwa-icon-512.png?v=${PWA_VERSION}`, sizes: '512x512', type: 'image/png', purpose: 'any' },
-    { src: `/pwa-maskable-512.png?v=${PWA_VERSION}`, sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+    { src: './icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+    { src: './icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' }
   ];
   await writeFile(manifestPath, JSON.stringify(manifest, null, 2));
 } catch (error) {
