@@ -375,3 +375,77 @@ setChillMood=function(v){
   saveState(false);
   render();
 };
+
+
+// Dashboard privacy mode: hide sensitive money information until Christy reveals it.
+let hoaFinancePrivacyVisible=false;
+function hoaFinancePrivacyTargets(root){
+  return [
+    root?.querySelector('.hoa-dream-accounts'),
+    root?.querySelector('.hoa-dream-money-strip'),
+    root?.querySelector('#hoaAvailableBreakdown'),
+    root?.querySelector('.hoa-dream-charts')
+  ].filter(Boolean);
+}
+function hoaFinancePrivacyMarkup(){
+  return `<section class="hoa-finance-privacy-control" id="hoaFinancePrivacyControl">
+    <div class="hoa-finance-privacy-copy">
+      <span class="hoa-finance-privacy-icon" aria-hidden="true">✦</span>
+      <div><small>FINANCIAL PRIVACY</small><b id="hoaFinancePrivacyStatus">Balances hidden</b><span id="hoaFinancePrivacyHint">Tap the frosted area or button to reveal.</span></div>
+    </div>
+    <button type="button" id="hoaFinancePrivacyButton" onclick="hoaToggleFinancePrivacy()" aria-pressed="false">Reveal finances</button>
+  </section>`;
+}
+function hoaApplyFinancePrivacy(){
+  if(currentView!=='dashboard')return;
+  const root=document.querySelector('.hoa-dream-dashboard');
+  if(!root)return;
+  const accounts=root.querySelector('.hoa-dream-accounts');
+  if(accounts&&!root.querySelector('#hoaFinancePrivacyControl')){
+    accounts.insertAdjacentHTML('beforebegin',hoaFinancePrivacyMarkup());
+  }
+  hoaFinancePrivacyTargets(root).forEach(el=>el.classList.add('hoa-finance-sensitive'));
+  root.classList.toggle('hoa-finance-private',!hoaFinancePrivacyVisible);
+  root.classList.toggle('hoa-finance-visible',hoaFinancePrivacyVisible);
+  const btn=root.querySelector('#hoaFinancePrivacyButton');
+  const status=root.querySelector('#hoaFinancePrivacyStatus');
+  const hint=root.querySelector('#hoaFinancePrivacyHint');
+  if(btn){
+    btn.textContent=hoaFinancePrivacyVisible?'Hide finances':'Reveal finances';
+    btn.setAttribute('aria-pressed',hoaFinancePrivacyVisible?'true':'false');
+  }
+  if(status)status.textContent=hoaFinancePrivacyVisible?'Balances visible':'Balances hidden';
+  if(hint)hint.textContent=hoaFinancePrivacyVisible?'Tap Hide when you are done.':'Tap the frosted area or button to reveal.';
+}
+function hoaToggleFinancePrivacy(force){
+  hoaFinancePrivacyVisible=typeof force==='boolean'?force:!hoaFinancePrivacyVisible;
+  hoaApplyFinancePrivacy();
+}
+function hoaFinancePrivacyIntercept(event){
+  if(hoaFinancePrivacyVisible||currentView!=='dashboard')return;
+  const target=event.target?.closest?.('.hoa-finance-sensitive');
+  if(!target)return;
+  event.preventDefault();
+  event.stopPropagation();
+  event.stopImmediatePropagation?.();
+  hoaToggleFinancePrivacy(true);
+}
+if(!document.documentElement.dataset.hoaFinancePrivacyBound){
+  document.documentElement.dataset.hoaFinancePrivacyBound='1';
+  document.addEventListener('click',hoaFinancePrivacyIntercept,true);
+  document.addEventListener('visibilitychange',()=>{
+    if(document.hidden){
+      hoaFinancePrivacyVisible=false;
+    }else{
+      requestAnimationFrame(hoaApplyFinancePrivacy);
+    }
+  });
+  window.addEventListener('pagehide',()=>{hoaFinancePrivacyVisible=false;});
+}
+const hoaFinancePrivacyBaseRender=render;
+render=function(){
+  const result=hoaFinancePrivacyBaseRender();
+  requestAnimationFrame(hoaApplyFinancePrivacy);
+  return result;
+};
+requestAnimationFrame(hoaApplyFinancePrivacy);

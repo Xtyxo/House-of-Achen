@@ -145,3 +145,35 @@ body.hoa-dream-home .content{padding-top:16px}
 .hoa-mood-history-card{padding:15px}.hoa-mood-chart-wrap{height:220px}.hoa-mood-chart-wrap canvas{width:100%!important;height:100%!important;display:block}
 @media(max-width:760px){.hoa-dream-money-strip{grid-template-columns:repeat(2,minmax(0,1fr))}.hoa-formula-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:430px){.hoa-formula-grid{grid-template-columns:1fr}.hoa-dream-chart-wrap{height:230px}}
+
+
+/* Dashboard privacy — shoulder-surfing protection for financial information */
+.hoa-finance-privacy-control{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  min-height:58px;padding:10px 12px;border:1px solid rgba(105,79,139,.16);border-radius:18px;
+  background:linear-gradient(135deg,rgba(247,242,255,.86),rgba(255,238,247,.82));
+  box-shadow:0 10px 26px rgba(58,40,87,.08);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+}
+.hoa-finance-privacy-copy{display:flex;align-items:center;gap:10px;min-width:0}
+.hoa-finance-privacy-icon{width:35px;height:35px;flex:0 0 auto;border-radius:11px;display:grid;place-items:center;background:linear-gradient(145deg,#4b386f,#a65f91);color:#fff;box-shadow:0 7px 15px rgba(72,45,105,.16)}
+.hoa-finance-privacy-copy small,.hoa-finance-privacy-copy b,.hoa-finance-privacy-copy span{display:block}
+.hoa-finance-privacy-copy small{font-size:8px;letter-spacing:.12em;font-weight:900;color:#806487}
+.hoa-finance-privacy-copy b{font:650 13px Georgia,serif;color:#332b48;margin-top:1px}
+.hoa-finance-privacy-copy div>span{font-size:9px;color:#81748a;margin-top:2px;line-height:1.25}
+.hoa-finance-privacy-control>button{flex:0 0 auto;border:0;border-radius:12px;padding:9px 11px;background:linear-gradient(135deg,#6d52a1,#be6094);color:#fff;font-size:9.5px;font-weight:850;box-shadow:0 7px 16px rgba(86,54,121,.16)}
+.hoa-finance-sensitive{position:relative;overflow:hidden}
+.hoa-finance-sensitive>*{transition:filter .2s ease,opacity .2s ease}
+.hoa-finance-private .hoa-finance-sensitive>*{filter:blur(15px);opacity:.34;user-select:none;-webkit-user-select:none}
+.hoa-finance-private .hoa-finance-sensitive:after{
+  content:"Private financial info • Tap to reveal";
+  position:absolute;inset:0;z-index:40;display:grid;place-items:center;padding:14px;text-align:center;
+  color:#5c4c70;font-size:11px;font-weight:850;letter-spacing:.025em;
+  background:linear-gradient(135deg,rgba(246,239,255,.66),rgba(255,235,246,.62));
+  backdrop-filter:blur(13px) saturate(.82);-webkit-backdrop-filter:blur(13px) saturate(.82);
+  border-radius:inherit;pointer-events:none;
+}
+.hoa-finance-visible .hoa-finance-sensitive:after{display:none}
+@media(max-width:520px){
+  .hoa-finance-privacy-control{align-items:stretch;flex-direction:column;padding:10px}
+  .hoa-finance-privacy-control>button{width:100%;min-height:38px}
+}
