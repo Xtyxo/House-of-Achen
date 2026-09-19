@@ -96,27 +96,40 @@ const iconHeadTags = [
 html = html.replace('</head>', `  ${iconHeadTags}\n</head>`);
 
 const cssTags = [
-  '<link rel="stylesheet" href="./overrides/app.css">',
+  `<link rel="stylesheet" href="./overrides/app.css?v=${buildId}">`,
   `<link rel="stylesheet" href="./overrides/crochet.css?v=${buildId}">`,
   `<link rel="stylesheet" href="./overrides/finance.css?v=${buildId}">`,
   `<link rel="stylesheet" href="./overrides/dashboard.css?v=${buildId}">`,
 ];
 for (const tag of cssTags) {
   const href = tag.match(/href="([^"]+)/)?.[1]?.split('?')[0];
-  if (!href || !html.includes(href)) html = html.replace('</head>', `  ${tag}\n</head>`);
+  if (!href) continue;
+  const escaped = href.replace(/\./g, '\\.');
+  const existing = new RegExp(`<link\\b[^>]*href=["']${escaped}(?:\\?[^"']*)?["'][^>]*>\\s*`, 'i');
+  if (existing.test(html)) html = html.replace(existing, tag + '\n');
+  else html = html.replace('</head>', `  ${tag}\n</head>`);
 }
 
 const jsTags = [
-  '<script src="./overrides/app.js"></script>',
+  `<script src="./overrides/app.js?v=${buildId}"></script>`,
   `<script src="./overrides/crochet.js?v=${buildId}"></script>`,
   `<script src="./overrides/finance.js?v=${buildId}"></script>`,
   `<script src="./overrides/dashboard.js?v=${buildId}"></script>`,
 ];
 for (const tag of jsTags) {
   const src = tag.match(/src="([^"]+)/)?.[1]?.split('?')[0];
-  if (!src || !html.includes(src)) html = html.replace('</body>', `  ${tag}\n</body>`);
+  if (!src) continue;
+  const escaped = src.replace(/\./g, '\\.');
+  const existing = new RegExp(`<script\\b[^>]*src=["']${escaped}(?:\\?[^"']*)?["'][^>]*><\\/script>\\s*`, 'i');
+  if (existing.test(html)) html = html.replace(existing, tag + '\n');
+  else html = html.replace('</body>', `  ${tag}\n</body>`);
 }
 
+// Force installed PWAs to check the service worker itself without an old HTTP-cache copy.
+html = html.replace(
+  /navigator\.serviceWorker\.register\('\.\/service-worker\.js'\)/g,
+  "navigator.serviceWorker.register('./service-worker.js',{updateViaCache:'none'})"
+);
 html = html.replace(/<meta name="theme-color" content="[^"]*">/i, '<meta name="theme-color" content="#29224D">');
 await writeFile(join(OUT, 'index.html'), html);
 
