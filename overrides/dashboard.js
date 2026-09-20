@@ -449,3 +449,219 @@ render=function(){
   return result;
 };
 requestAnimationFrame(hoaApplyFinancePrivacy);
+
+
+// Dashboard pass 3: cozy daily home + eye-only account privacy.
+try{document.removeEventListener('click',hoaFinancePrivacyIntercept,true)}catch{}
+
+function hoaPrivacyEyeSvg(open){
+  return open
+    ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="2.7" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>'
+    : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M10.6 6.2A9.5 9.5 0 0 1 12 6c6.1 0 9.5 6 9.5 6a15 15 0 0 1-3.2 3.7M6.2 6.2C3.7 8 2.5 12 2.5 12s3.4 6 9.5 6a9.8 9.8 0 0 0 3.2-.5M9.9 9.9A3 3 0 0 0 14.1 14.1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+}
+function hoaHomeBankAccounts(){
+  if(typeof hoaDashboardBankAccounts==='function')return hoaDashboardBankAccounts();
+  return (state.accounts||[]).filter(a=>a&&(a.snapshot===true||a.connected===true)&&!a.manual&&a.type!=='Investment');
+}
+function hoaHomeBankAccountMarkup(){
+  const accounts=hoaHomeBankAccounts();
+  if(!accounts.length)return '<div class="hoa-dream-empty">No linked bank balances are available yet.</div>';
+  const cards=accounts.map((a,i)=>{
+    const raw=typeof rawBalanceFor==='function'?rawBalanceFor(a):num(a.currentBalance??a.rawBalance);
+    return `<button class="hoa-dream-account tone-${(i%6)+1}" onclick="nav('accounts')" aria-label="Open ${esc(a.name||a.institution||'account')}">
+      <span class="hoa-dream-account-icon">${hoaIcon('bank',20)}</span>
+      <span class="hoa-dream-account-copy"><b>${esc(a.name||a.institution||'Account')}</b><small>${esc(a.institution||a.type||'')}</small></span>
+      <strong>${money(raw)}</strong>
+    </button>`;
+  }).join('');
+  const total=accounts.reduce((sum,a)=>sum+(typeof rawBalanceFor==='function'?rawBalanceFor(a):num(a.currentBalance??a.rawBalance)),0);
+  return `${cards}<button class="hoa-dream-account hoa-dream-total" onclick="nav('accounts')" aria-label="Open financial overview"><span class="hoa-dream-account-icon">${hoaIcon('wallet',20)}</span><span class="hoa-dream-account-copy"><b>All Bank Accounts</b><small>Latest available raw balances</small></span><strong>${money(total)}</strong></button>`;
+}
+
+const HOA_CAT_MESSAGES=[
+  'Luna says: protect your peace. Diana says: and maybe knock one tiny thing off the list.',
+  'Luna recommends a cozy five-minute reset. Diana recommends inspecting the snacks.',
+  'Diana says you are allowed to have a soft day. Luna has already approved the nap.',
+  'Luna says small progress still counts. Diana says being adorable also counts.',
+  'Today’s household meeting has concluded: more softness, fewer unnecessary emergencies.',
+  'Luna is supervising quietly. Diana is supervising loudly. You are doing fine.'
+];
+function hoaDailyCatMessage(){
+  const d=new Date(),seed=Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/86400000);
+  return HOA_CAT_MESSAGES[Math.abs(seed)%HOA_CAT_MESSAGES.length];
+}
+function hoaDashboardDailyEntry(){
+  if(!state.ui)state.ui={};
+  if(!state.ui.dashboardDaily||typeof state.ui.dashboardDaily!=='object')state.ui.dashboardDaily={};
+  const key=todayISO();
+  if(!state.ui.dashboardDaily[key])state.ui.dashboardDaily[key]={focus:'',win:'',selfCare:{}};
+  if(!state.ui.dashboardDaily[key].selfCare)state.ui.dashboardDaily[key].selfCare={};
+  return state.ui.dashboardDaily[key];
+}
+function hoaSaveDashboardDaily(field,value){
+  const row=hoaDashboardDailyEntry();
+  row[field]=value;
+  saveState(false);
+}
+function hoaSelfCareItems(){
+  if(!state.settings)state.settings={};
+  if(!Array.isArray(state.settings.dashboardSelfCareItems)||!state.settings.dashboardSelfCareItems.length){
+    state.settings.dashboardSelfCareItems=['Skincare','Water','Hair care','Unwind'];
+  }
+  return state.settings.dashboardSelfCareItems;
+}
+function hoaSelfCareMarkup(){
+  const row=hoaDashboardDailyEntry(),items=hoaSelfCareItems();
+  return items.map((item,i)=>`<button type="button" class="hoa-selfcare-chip ${row.selfCare[i]?'done':''}" onclick="hoaToggleSelfCare(${i})"><span>${row.selfCare[i]?'✓':'○'}</span>${esc(item)}</button>`).join('');
+}
+function hoaToggleSelfCare(i){
+  const row=hoaDashboardDailyEntry();
+  row.selfCare[i]=!row.selfCare[i];
+  saveState(false);
+  render();
+}
+function hoaOpenSelfCareEditor(){
+  openModal('Customize self-care',`<div class="field"><label>Daily self-care items</label><textarea id="hoaSelfCareEdit" rows="5" placeholder="One item per line">${esc(hoaSelfCareItems().join('\n'))}</textarea><div class="sub" style="margin-top:6px">Keep it short and useful. These become your daily check-off chips.</div></div>`,`<button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="hoaSaveSelfCareItems()">Save</button>`);
+}
+function hoaSaveSelfCareItems(){
+  const items=(document.getElementById('hoaSelfCareEdit')?.value||'').split(/\n+/).map(x=>x.trim()).filter(Boolean).slice(0,8);
+  if(!items.length)return toast('Add at least one self-care item');
+  state.settings.dashboardSelfCareItems=items;
+  saveState(false);closeModal();render();
+}
+function hoaEnsureReminders(){
+  if(!Array.isArray(state.reminders))state.reminders=[];
+  return state.reminders;
+}
+function hoaUpcomingReminders(){
+  const today=todayISO();
+  return hoaEnsureReminders().filter(r=>r&&!r.done&&r.date>=today).sort((a,b)=>((a.date||'')+(a.time||'')).localeCompare((b.date||'')+(b.time||''))).slice(0,3);
+}
+function hoaReminderMarkup(){
+  const rows=hoaUpcomingReminders();
+  if(!rows.length)return '<div class="hoa-reminder-empty">Nothing urgent hanging over you. Add something when you need it.</div>';
+  return rows.map(r=>`<div class="hoa-reminder-row"><button class="hoa-reminder-check" onclick="hoaCompleteReminder('${r.id}')" aria-label="Mark reminder complete">○</button><div><b>${esc(r.title||'Reminder')}</b><span>${fmtDate(r.date)}${r.time?' · '+esc(r.time):''}</span></div></div>`).join('');
+}
+function hoaOpenDashboardReminder(){
+  openModal('Add reminder',`<div class="form-grid"><div class="field span2"><label>Reminder</label><input id="hoaReminderTitle" placeholder="What do you want future-you to remember?"></div><div class="field"><label>Date</label><input id="hoaReminderDate" type="date" value="${todayISO()}"></div><div class="field"><label>Time (optional)</label><input id="hoaReminderTime" type="time"></div></div>`,`<button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="hoaSaveDashboardReminder()">Add reminder</button>`);
+}
+function hoaSaveDashboardReminder(){
+  const title=(document.getElementById('hoaReminderTitle')?.value||'').trim();
+  const date=document.getElementById('hoaReminderDate')?.value||todayISO();
+  const time=document.getElementById('hoaReminderTime')?.value||'';
+  if(!title)return toast('Add a reminder');
+  hoaEnsureReminders().push({id:uid('rem'),title,date,time,done:false,createdAt:new Date().toISOString()});
+  saveState(false);closeModal();render();
+}
+function hoaCompleteReminder(id){
+  const r=hoaEnsureReminders().find(x=>x.id===id);
+  if(!r)return;
+  r.done=true;saveState(false);render();
+}
+
+function hoaDashboardV3(){
+  const quote=typeof dailyQuote==='function'?dailyQuote():'Small progress still counts.';
+  const daily=hoaDashboardDailyEntry();
+  const host=document.getElementById('content');
+  if(!host)return;
+  document.getElementById('pageTitle')?.replaceChildren(document.createTextNode('Home'));
+  host.innerHTML=`<div class="hoa-dream-dashboard hoa-dashboard-v3">
+    <section class="hoa-dream-banner">
+      <button class="hoa-banner-menu" onclick="hoaDreamOpenMenu()" aria-label="Open menu"><span class="hoa-menu-bars" aria-hidden="true"></span></button>
+      <div class="hoa-dream-banner-copy"><span>Welcome back,</span><h1>Christy</h1><p>“A softer, brighter, more abundant you.”</p></div>
+      <div class="hoa-dream-banner-pets" aria-hidden="true"><div class="hoa-dream-pet luna"><img src="./assets/cats/luna-full.webp" alt=""></div><div class="hoa-dream-pet diana"><img src="./assets/cats/diana-full.webp" alt=""></div></div>
+      <div class="hoa-dream-date"><b>${esc(hoaDreamDateLabel())}</b><span>${esc(hoaDreamLocationLabel())}</span><small>A brighter day ahead</small></div>
+    </section>
+
+    <section class="hoa-dream-panel hoa-dream-accounts">
+      <div class="hoa-dream-section-head"><div><h2>Account Overview</h2><p>Latest available bank snapshots.</p></div><div class="hoa-account-head-actions"><button id="hoaAccountPrivacyEye" class="hoa-account-eye" onclick="hoaToggleFinancePrivacy()" aria-label="Reveal account balances" aria-pressed="false">${hoaPrivacyEyeSvg(false)}</button><button onclick="nav('accounts')">View all</button></div></div>
+      <div class="hoa-home-account-private-body"><div class="hoa-dream-account-strip">${hoaHomeBankAccountMarkup()}</div></div>
+    </section>
+
+    <section class="hoa-home-affirmation"><span>${hoaIcon('sparkle',20)}</span><div><small>TODAY'S AFFIRMATION</small><b>“${esc(quote)}”</b></div></section>
+
+    ${hoaDreamMusicDockMarkup()}
+
+    <section class="hoa-cat-message"><img src="./assets/cats/luna-head.webp" alt="Luna"><div><small>LUNA & DIANA SAY…</small><b>${esc(hoaDailyCatMessage())}</b></div><img src="./assets/cats/diana-head.webp" alt="Diana"></section>
+
+    <section class="hoa-home-card hoa-focus-card"><div class="hoa-home-card-head"><div><small>TODAY'S LITTLE FOCUS</small><h2>One thing is enough.</h2></div>${hoaIcon('goal',20)}</div><input value="${esc(daily.focus||'')}" oninput="hoaSaveDashboardDaily('focus',this.value)" placeholder="What deserves your attention today?"></section>
+
+    <section class="hoa-home-card hoa-mood-card"><div class="hoa-home-card-head"><div><small>MOOD CHECK-IN</small><h2>How are you feeling?</h2></div>${hoaIcon('life',20)}</div><div class="hoa-dream-moods hoa-v3-moods">${hoaDreamMoodButtons()}</div></section>
+
+    <section class="hoa-dream-panel hoa-mood-history-card"><div class="hoa-dream-section-head"><div><h2>30-Day Mood Story</h2><p>Your check-ins build one day at a time.</p></div></div><div class="hoa-mood-chart-wrap"><canvas id="hoaMoodHistoryChart"></canvas></div></section>
+
+    <section class="hoa-home-card hoa-reminders-card"><div class="hoa-home-card-head"><div><small>UPCOMING REMINDERS</small><h2>What’s coming up</h2></div><button class="hoa-mini-action" onclick="hoaOpenDashboardReminder()">+ Add</button></div><div class="hoa-reminder-list">${hoaReminderMarkup()}</div></section>
+
+    <section class="hoa-home-card hoa-selfcare-card"><div class="hoa-home-card-head"><div><small>SELF-CARE CHECK</small><h2>A few things for you.</h2></div><button class="hoa-mini-action" onclick="hoaOpenSelfCareEditor()">Edit</button></div><div class="hoa-selfcare-list">${hoaSelfCareMarkup()}</div></section>
+
+    <section class="hoa-home-card hoa-win-card"><div class="hoa-home-card-head"><div><small>LITTLE WIN OF THE DAY</small><h2>What went right?</h2></div>${hoaIcon('sparkle',20)}</div><input value="${esc(daily.win||'')}" oninput="hoaSaveDashboardDaily('win',this.value)" placeholder="Even a tiny win counts."></section>
+
+    <section class="hoa-home-card hoa-brain-card"><div class="hoa-home-card-head"><div><small>BRAIN DUMP</small><h2>Leave the thought here.</h2></div>${hoaIcon('note',20)}</div><textarea oninput="saveChillNote(this.value)" placeholder="Anything taking up space in your head…">${esc(state.ui?.chillNote||'')}</textarea></section>
+
+    <section class="hoa-dream-panel hoa-dream-explore">
+      <div class="hoa-dream-section-head"><div><h2>Explore House of Achen</h2><p>Everything else has a home too.</p></div></div>
+      <div class="hoa-dream-tile-strip">${hoaDreamTiles()}</div>
+    </section>
+  </div>`;
+
+  requestAnimationFrame(()=>{
+    try{hoaMoodLine(document.getElementById('hoaMoodHistoryChart'));}catch(e){console.warn('Mood history',e);}
+    hoaApplyFinancePrivacy();
+  });
+}
+
+renderDashboard=hoaDashboardV3;
+
+hoaFinancePrivacyTargets=function(root){
+  return [root?.querySelector('.hoa-home-account-private-body')].filter(Boolean);
+};
+hoaApplyFinancePrivacy=function(){
+  if(currentView!=='dashboard')return;
+  const root=document.querySelector('.hoa-dream-dashboard');
+  if(!root)return;
+  root.classList.toggle('hoa-finance-private',!hoaFinancePrivacyVisible);
+  root.classList.toggle('hoa-finance-visible',hoaFinancePrivacyVisible);
+  const eye=root.querySelector('#hoaAccountPrivacyEye');
+  if(eye){
+    eye.innerHTML=hoaPrivacyEyeSvg(hoaFinancePrivacyVisible);
+    eye.setAttribute('aria-pressed',hoaFinancePrivacyVisible?'true':'false');
+    eye.setAttribute('aria-label',hoaFinancePrivacyVisible?'Hide account balances':'Reveal account balances');
+    eye.title=hoaFinancePrivacyVisible?'Hide balances':'Reveal balances';
+  }
+};
+hoaToggleFinancePrivacy=function(force){
+  hoaFinancePrivacyVisible=typeof force==='boolean'?force:!hoaFinancePrivacyVisible;
+  hoaApplyFinancePrivacy();
+};
+
+const hoaDashboardV3BaseRenderAccounts=typeof renderAccounts==='function'?renderAccounts:null;
+if(hoaDashboardV3BaseRenderAccounts){
+  renderAccounts=function(){
+    hoaDashboardV3BaseRenderAccounts();
+    const host=document.getElementById('content');
+    if(!host||host.querySelector('.hoa-financial-overview-extra'))return;
+    const p=typeof selectedPaycheck==='function'?selectedPaycheck():null;
+    const c=typeof calcPaycheck==='function'?calcPaycheck(p):{};
+    const anchor=host.querySelector('.power-grid')||host.firstElementChild;
+    const html=`<section class="hoa-financial-overview-extra">
+      <div class="section-title"><div><h3>Financial overview</h3><p>The detailed money view lives here instead of crowding your Home dashboard.</p></div></div>
+      <div class="hoa-dream-charts hoa-account-overview-charts">
+        <div class="hoa-dream-chart-card"><div class="hoa-dream-card-head"><div><h2>Account Balance Mix</h2><p>Positive linked balances by account.</p></div>${hoaIcon('chart',20)}</div><div class="hoa-dream-chart-wrap"><canvas id="hoaAccountPieChartAccounts"></canvas></div></div>
+        <div class="hoa-dream-chart-card"><div class="hoa-dream-card-head"><div><h2>Signed Account Balances</h2><p>Negative balances fall below zero.</p></div>${hoaIcon('bank',20)}</div><div class="hoa-dream-chart-wrap"><canvas id="hoaAccountBalanceBarAccounts"></canvas></div></div>
+      </div>
+      <div class="hoa-account-paycheck-summary">
+        <div class="hoa-dream-section-head"><div><h2>Current Paycheck Snapshot</h2><p>House of Achen paycheck math, separate from raw bank balances.</p></div><button onclick="nav('payday')">Open planner</button></div>
+        <div class="hoa-account-paycheck-kpis"><div><span>Available Cash</span><b>${money(c.available||0)}</b></div><div><span>Safe to Spend</span><b>${money(c.safe||0)}</b></div><div><span>Actual Cash Left</span><b>${money(c.actualCashLeft||0)}</b></div><div><span>Still Need to Fund</span><b>${money(c.stillNeed||0)}</b></div></div>
+        <div class="hoa-account-formula">${hoaDashboardPaycheckBreakdown(p,c)}</div>
+      </div>
+    </section>`;
+    anchor?.insertAdjacentHTML('afterend',html);
+    requestAnimationFrame(()=>{
+      try{pie(document.getElementById('hoaAccountPieChartAccounts'),hoaDashboardAccountPieItems());}catch(e){console.warn('Accounts pie',e);}
+      try{hoaSignedAccountBars(document.getElementById('hoaAccountBalanceBarAccounts'));}catch(e){console.warn('Accounts bars',e);}
+    });
+  };
+}
+
+hoaFinancePrivacyVisible=false;
+if(currentView==='dashboard')render();

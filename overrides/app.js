@@ -379,3 +379,122 @@ render = function(){
 refreshCompanionArt();
 hoaNormalizeMobileViewport();
 render();
+
+// House of Achen biometric app lock (WebAuthn platform authenticator).
+(function installHoaBiometricLock(){
+  const KEY='hoa_biometric_credential_v1';
+  let unlocked=false;
+  const toB64=bytes=>btoa(String.fromCharCode(...new Uint8Array(bytes))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  const fromB64=s=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')+'==='.slice((s.length+3)%4)),c=>c.charCodeAt(0));
+  const randomBytes=n=>crypto.getRandomValues(new Uint8Array(n));
+
+  if(!document.getElementById('hoa-biometric-style')){
+    const style=document.createElement('style');
+    style.id='hoa-biometric-style';
+    style.textContent=`
+      #hoaBiometricLock{position:fixed;inset:0;z-index:100000;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 75% 18%,rgba(217,194,241,.62),transparent 32%),linear-gradient(145deg,#211d38,#4d385f 55%,#9c6687);color:#fff}
+      #hoaBiometricLock[hidden]{display:none!important}
+      .hoa-lock-card{width:min(92vw,390px);padding:24px 20px;border:1px solid rgba(255,255,255,.28);border-radius:26px;background:rgba(34,27,55,.72);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);box-shadow:0 24px 70px rgba(12,9,24,.34);text-align:center}
+      .hoa-lock-moon{width:58px;height:58px;margin:0 auto 13px;border-radius:19px;display:grid;place-items:center;background:linear-gradient(145deg,#f3cddd,#d9cdf4);color:#473552;font-size:27px}
+      .hoa-lock-card small{display:block;font-size:9px;letter-spacing:.15em;font-weight:900;color:#ddcfe5}.hoa-lock-card h2{margin:6px 0 7px;font:600 28px Georgia,serif}.hoa-lock-card p{margin:0 auto 16px;max-width:310px;font-size:11px;line-height:1.5;color:#e8deeb}
+      .hoa-lock-primary,.hoa-lock-secondary{width:100%;min-height:46px;border-radius:14px;font-weight:850}.hoa-lock-primary{border:0;background:linear-gradient(135deg,#f2bfd6,#d8c9ff);color:#342946}.hoa-lock-secondary{margin-top:8px;border:1px solid rgba(255,255,255,.2);background:transparent;color:#ded3e4}.hoa-lock-error{min-height:18px;margin-top:10px;color:#ffd8df;font-size:10px}
+      body.hoa-app-locked{overflow:hidden!important}
+    `;
+    document.head.appendChild(style);
+  }
+
+  function ensureOverlay(){
+    let overlay=document.getElementById('hoaBiometricLock');
+    if(overlay)return overlay;
+    overlay=document.createElement('div');
+    overlay.id='hoaBiometricLock';
+    overlay.innerHTML=`<div class="hoa-lock-card"><div class="hoa-lock-moon">☾</div><small>HOUSE OF ACHEN</small><h2 id="hoaLockTitle">Private by default</h2><p id="hoaLockCopy">Use your fingerprint or device biometric to unlock your personal dashboard.</p><button class="hoa-lock-primary" id="hoaLockPrimary">Unlock</button><button class="hoa-lock-secondary" id="hoaLockSecondary">Not now</button><div class="hoa-lock-error" id="hoaLockError" role="status"></div></div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#hoaLockPrimary').addEventListener('click',hoaRunBiometric);
+    overlay.querySelector('#hoaLockSecondary').addEventListener('click',()=>hoaUnlockApp(false));
+    return overlay;
+  }
+  async function platformAvailable(){
+    try{return !!(window.PublicKeyCredential&&navigator.credentials&&await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable());}catch{return false;}
+  }
+  function hoaUnlockApp(verified=true){
+    unlocked=true;
+    const overlay=ensureOverlay();
+    overlay.hidden=true;
+    document.body.classList.remove('hoa-app-locked');
+    if(verified)sessionStorage.setItem('hoa_biometric_last_ok',String(Date.now()));
+  }
+  function hoaLockApp(){
+    unlocked=false;
+    const overlay=ensureOverlay();
+    overlay.hidden=false;
+    document.body.classList.add('hoa-app-locked');
+    configureOverlay();
+  }
+  async function configureOverlay(){
+    const overlay=ensureOverlay(),primary=overlay.querySelector('#hoaLockPrimary'),secondary=overlay.querySelector('#hoaLockSecondary'),title=overlay.querySelector('#hoaLockTitle'),copy=overlay.querySelector('#hoaLockCopy'),err=overlay.querySelector('#hoaLockError');
+    err.textContent='';
+    const available=await platformAvailable();
+    const enrolled=!!localStorage.getItem(KEY);
+    if(!available){
+      title.textContent='Biometric unlock unavailable';
+      copy.textContent='This browser is not exposing Android device biometrics here. You can continue, then try House of Achen from Chrome or the installed PWA.';
+      primary.textContent='Continue';
+      secondary.hidden=true;
+      return;
+    }
+    secondary.hidden=false;
+    if(enrolled){
+      title.textContent='House of Achen is locked';
+      copy.textContent='Verify with your fingerprint or Android device security to continue.';
+      primary.textContent='Unlock with fingerprint';
+      secondary.textContent='Not now';
+    }else{
+      title.textContent='Set up fingerprint unlock';
+      copy.textContent='Enroll this device once. After that, House of Achen will lock again whenever the app is reopened or brought back from the background.';
+      primary.textContent='Set up fingerprint';
+      secondary.textContent='Not now';
+    }
+  }
+  async function hoaRunBiometric(){
+    const overlay=ensureOverlay(),button=overlay.querySelector('#hoaLockPrimary'),err=overlay.querySelector('#hoaLockError');
+    err.textContent='';
+    const available=await platformAvailable();
+    if(!available){hoaUnlockApp(false);return;}
+    button.disabled=true;
+    try{
+      let id=localStorage.getItem(KEY);
+      if(!id){
+        const credential=await navigator.credentials.create({publicKey:{
+          challenge:randomBytes(32),
+          rp:{name:'House of Achen'},
+          user:{id:randomBytes(32),name:'house-of-achen-local',displayName:'House of Achen'},
+          pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
+          authenticatorSelection:{authenticatorAttachment:'platform',residentKey:'preferred',userVerification:'required'},
+          timeout:60000,
+          attestation:'none'
+        }});
+        if(!credential)throw new Error('No biometric credential was created.');
+        id=toB64(credential.rawId);
+        localStorage.setItem(KEY,id);
+      }else{
+        const assertion=await navigator.credentials.get({publicKey:{
+          challenge:randomBytes(32),
+          allowCredentials:[{type:'public-key',id:fromB64(id),transports:['internal']}],
+          userVerification:'required',
+          timeout:60000
+        }});
+        if(!assertion)throw new Error('Verification was not completed.');
+      }
+      hoaUnlockApp(true);
+    }catch(e){
+      err.textContent=e?.name==='NotAllowedError'?'Fingerprint/device verification was cancelled.':(e?.message||'Could not verify this device.');
+    }finally{button.disabled=false;configureOverlay();}
+  }
+
+  window.hoaLockApp=hoaLockApp;
+  window.hoaUnlockApp=hoaUnlockApp;
+  hoaLockApp();
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){unlocked=false;}else if(!unlocked)hoaLockApp();});
+  window.addEventListener('pagehide',()=>{unlocked=false;});
+})();

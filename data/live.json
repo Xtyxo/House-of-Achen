@@ -1,17 +1,18 @@
 {
-  "publishedAt": "2026-09-18T06:16:53Z",
-  "source": "Nova • ChatGPT Finances",
+  "publishedAt": "2026-09-20T05:35:00Z",
+  "source": "Nova • ChatGPT Finances • latest available balances",
   "accounts": [
     {
       "id": "acct_paypal",
       "name": "PayPal",
       "institution": "PayPal",
       "type": "Bank",
-      "rawBalance": 3.87,
-      "currentBalance": 3.87,
+      "rawBalance": 0,
+      "currentBalance": 0,
       "connected": true,
       "snapshot": true,
-      "asOf": "2026-09-18"
+      "asOf": null,
+      "freshness": "Latest available snapshot; source-reported balance time unavailable"
     },
     {
       "id": "acct_varo_save",
@@ -22,7 +23,8 @@
       "currentBalance": 0,
       "connected": true,
       "snapshot": true,
-      "asOf": "2026-09-18"
+      "asOf": null,
+      "freshness": "Latest available snapshot; source-reported balance time unavailable"
     },
     {
       "id": "acct_varo_check",
@@ -33,7 +35,8 @@
       "currentBalance": 0.07,
       "connected": true,
       "snapshot": true,
-      "asOf": "2026-09-18"
+      "asOf": null,
+      "freshness": "Latest available snapshot; source-reported balance time unavailable"
     },
     {
       "id": "acct_capone_check",
@@ -44,7 +47,8 @@
       "currentBalance": -16.75,
       "connected": true,
       "snapshot": true,
-      "asOf": "2026-09-18"
+      "asOf": null,
+      "freshness": "Latest available snapshot; source-reported balance time unavailable"
     },
     {
       "id": "acct_capone_save",
@@ -55,7 +59,8 @@
       "currentBalance": 0.09,
       "connected": true,
       "snapshot": true,
-      "asOf": "2026-09-18"
+      "asOf": null,
+      "freshness": "Latest available snapshot; source-reported balance time unavailable"
     },
     {
       "id": "acct_marcus",
@@ -66,29 +71,32 @@
       "currentBalance": 85.29,
       "connected": true,
       "snapshot": true,
-      "asOf": "2026-09-18"
+      "asOf": null,
+      "freshness": "Latest available snapshot; source-reported balance time unavailable"
     },
     {
       "id": "acct_chime_save",
       "name": "Chime Savings",
       "institution": "Chime",
       "type": "Savings",
-      "rawBalance": 158.33,
-      "currentBalance": 158.33,
+      "rawBalance": 128.26,
+      "currentBalance": 128.26,
       "connected": true,
       "snapshot": true,
-      "asOf": "2026-09-18"
+      "asOf": null,
+      "freshness": "Latest available snapshot; source-reported balance time unavailable"
     },
     {
       "id": "acct_chime_check",
       "name": "Chime Checking",
       "institution": "Chime",
       "type": "Bank",
-      "rawBalance": 0,
-      "currentBalance": 0,
+      "rawBalance": -28.6,
+      "currentBalance": -28.6,
       "connected": true,
       "snapshot": true,
-      "asOf": "2026-09-18"
+      "asOf": null,
+      "freshness": "Latest available snapshot; source-reported balance time unavailable"
     },
     {
       "id": "acct_ally_save",
@@ -99,18 +107,20 @@
       "currentBalance": 0,
       "connected": true,
       "snapshot": true,
-      "asOf": "2026-09-18"
+      "asOf": null,
+      "freshness": "Latest available snapshot; source-reported balance time unavailable"
     },
     {
       "id": "acct_ally_spend",
       "name": "Ally Spending",
       "institution": "Ally Bank",
       "type": "Bank",
-      "rawBalance": 23.41,
-      "currentBalance": 23.41,
+      "rawBalance": 223.41,
+      "currentBalance": 223.41,
       "connected": true,
       "snapshot": true,
-      "asOf": "2026-09-18"
+      "asOf": null,
+      "freshness": "Latest available snapshot; source-reported balance time unavailable"
     },
     {
       "id": "acct_current",
@@ -121,7 +131,8 @@
       "currentBalance": 0.04,
       "connected": true,
       "snapshot": true,
-      "asOf": "2026-09-18"
+      "asOf": null,
+      "freshness": "Latest available snapshot; source-reported balance time unavailable"
     }
   ],
   "bankTransactions": [
