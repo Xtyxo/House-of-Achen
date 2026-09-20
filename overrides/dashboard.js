@@ -665,3 +665,208 @@ if(hoaDashboardV3BaseRenderAccounts){
 
 hoaFinancePrivacyVisible=false;
 if(currentView==='dashboard')render();
+
+
+// Dashboard pass 4: compact quick cards, automatic weather, calendar reminders, and organized Life Hub.
+function hoaQuickCardPreview(type){
+  const d=hoaDashboardDailyEntry();
+  if(type==='focus')return (d.focus||'').trim()||'Set one thing';
+  if(type==='win')return (d.win||'').trim()||'Capture a win';
+  if(type==='selfcare'){
+    const items=hoaSelfCareItems(),done=items.filter((_,i)=>d.selfCare?.[i]).length;
+    return done+'/'+items.length+' checked';
+  }
+  const note=String(state.ui?.chillNote||'').trim();
+  return note?note.slice(0,30)+(note.length>30?'…':''):'Drop a thought';
+}
+function hoaQuickDockMarkup(){
+  return `<section class="hoa-dashboard-quick-dock" aria-label="Daily quick cards">
+    <button onclick="hoaOpenQuickSheet('focus')"><span>${hoaIcon('goal',17)}</span><b>Little Focus</b><small>${esc(hoaQuickCardPreview('focus'))}</small></button>
+    <button onclick="hoaOpenQuickSheet('win')"><span>${hoaIcon('sparkle',17)}</span><b>Today's Win</b><small>${esc(hoaQuickCardPreview('win'))}</small></button>
+    <button onclick="hoaOpenQuickSheet('selfcare')"><span>${hoaIcon('life',17)}</span><b>Self Care</b><small>${esc(hoaQuickCardPreview('selfcare'))}</small></button>
+    <button onclick="hoaOpenQuickSheet('brain')"><span>${hoaIcon('note',17)}</span><b>Brain Dump</b><small>${esc(hoaQuickCardPreview('brain'))}</small></button>
+  </section>`;
+}
+function hoaEnsureQuickSheet(){
+  let bg=document.getElementById('hoaHomeSheetBg');
+  if(bg)return bg;
+  bg=document.createElement('div');
+  bg.id='hoaHomeSheetBg';
+  bg.className='hoa-home-sheet-bg';
+  bg.innerHTML='<section class="hoa-home-sheet" id="hoaHomeSheet" role="dialog" aria-modal="true"><div class="hoa-home-sheet-head"><div><small id="hoaHomeSheetEyebrow"></small><h2 id="hoaHomeSheetTitle"></h2></div><button onclick="hoaCloseQuickSheet()" aria-label="Close">×</button></div><div class="hoa-home-sheet-body" id="hoaHomeSheetBody"></div></section>';
+  bg.addEventListener('click',e=>{if(e.target===bg)hoaCloseQuickSheet();});
+  document.body.appendChild(bg);
+  return bg;
+}
+function hoaRefreshQuickDock(){
+  const root=document.querySelector('.hoa-dream-dashboard');
+  const old=root?.querySelector('.hoa-dashboard-quick-dock');
+  if(old)old.outerHTML=hoaQuickDockMarkup();
+}
+function hoaOpenQuickSheet(type){
+  const bg=hoaEnsureQuickSheet(),body=bg.querySelector('#hoaHomeSheetBody'),title=bg.querySelector('#hoaHomeSheetTitle'),eyebrow=bg.querySelector('#hoaHomeSheetEyebrow'),d=hoaDashboardDailyEntry();
+  if(type==='focus'){
+    eyebrow.textContent="TODAY'S LITTLE FOCUS";title.textContent='One thing is enough.';
+    body.innerHTML=`<textarea id="hoaSheetFocus" class="hoa-sheet-textarea" placeholder="What deserves your attention today?">${esc(d.focus||'')}</textarea><p>Keep it simple. This resets to a fresh entry each day.</p>`;
+    body.querySelector('#hoaSheetFocus').addEventListener('input',e=>{hoaSaveDashboardDaily('focus',e.target.value);hoaRefreshQuickDock();});
+  }else if(type==='win'){
+    eyebrow.textContent="TODAY'S WIN";title.textContent='What went right?';
+    body.innerHTML=`<textarea id="hoaSheetWin" class="hoa-sheet-textarea" placeholder="Even a tiny win counts.">${esc(d.win||'')}</textarea><p>Your daily wins stay saved by date.</p>`;
+    body.querySelector('#hoaSheetWin').addEventListener('input',e=>{hoaSaveDashboardDaily('win',e.target.value);hoaRefreshQuickDock();});
+  }else if(type==='selfcare'){
+    eyebrow.textContent='SELF CARE CHECK';title.textContent='A few things for you.';
+    body.innerHTML=`<div class="hoa-sheet-selfcare">${hoaSelfCareItems().map((item,i)=>`<button type="button" class="${d.selfCare?.[i]?'done':''}" onclick="hoaToggleSelfCareSheet(${i},this)"><span>${d.selfCare?.[i]?'✓':'○'}</span>${esc(item)}</button>`).join('')}</div><button class="hoa-sheet-edit" onclick="hoaCloseQuickSheet();hoaOpenSelfCareEditor()">Edit self-care list</button>`;
+  }else{
+    eyebrow.textContent='BRAIN DUMP';title.textContent='Leave the thought here.';
+    body.innerHTML=`<textarea id="hoaSheetBrain" class="hoa-sheet-textarea hoa-sheet-brain" placeholder="Anything taking up space in your head…">${esc(state.ui?.chillNote||'')}</textarea><p>This stays here until you clear or replace it.</p>`;
+    body.querySelector('#hoaSheetBrain').addEventListener('input',e=>{state.ui.chillNote=e.target.value;saveState(false);hoaRefreshQuickDock();});
+  }
+  bg.classList.add('open');
+  document.body.classList.add('hoa-sheet-open');
+  setTimeout(()=>body.querySelector('textarea')?.focus(),120);
+}
+function hoaToggleSelfCareSheet(i,btn){
+  const d=hoaDashboardDailyEntry();
+  d.selfCare[i]=!d.selfCare[i];saveState(false);
+  btn.classList.toggle('done',!!d.selfCare[i]);
+  btn.querySelector('span').textContent=d.selfCare[i]?'✓':'○';
+  hoaRefreshQuickDock();
+}
+function hoaCloseQuickSheet(){
+  document.getElementById('hoaHomeSheetBg')?.classList.remove('open');
+  document.body.classList.remove('hoa-sheet-open');
+}
+
+const hoaDashboardV4Base=hoaDashboardV3;
+function hoaDashboardV4(){
+  hoaDashboardV4Base();
+  const root=document.querySelector('.hoa-dream-dashboard');
+  if(!root)return;
+  ['.hoa-focus-card','.hoa-reminders-card','.hoa-selfcare-card','.hoa-win-card','.hoa-brain-card'].forEach(sel=>root.querySelector(sel)?.remove());
+  const explore=root.querySelector('.hoa-dream-explore');
+  if(explore&&!root.querySelector('.hoa-dashboard-quick-dock'))explore.insertAdjacentHTML('beforebegin',hoaQuickDockMarkup());
+  const date=root.querySelector('.hoa-dream-date');
+  if(date&&!date.querySelector('#hoaWeatherMount'))date.insertAdjacentHTML('beforeend','<div id="hoaWeatherMount" class="hoa-weather-mini" aria-live="polite"></div>');
+  requestAnimationFrame(()=>{hoaRenderWeatherFromCache();hoaRefreshWeather();});
+}
+renderDashboard=hoaDashboardV4;
+hoaDreamHasFocusedEditor=function(){
+  if(currentView!=='dashboard')return false;
+  const el=document.activeElement;
+  if(!el)return false;
+  if(el.closest?.('.hoa-home-sheet'))return /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName);
+  if(!el.closest?.('.hoa-dream-dashboard'))return false;
+  return /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName);
+};
+
+function hoaWeatherIconSvg(code,isDay){
+  const night=!isDay;
+  const moon='<path d="M17.7 4.3a7.4 7.4 0 1 0 2 14.1A8.6 8.6 0 0 1 17.7 4.3Z" fill="currentColor"/>';
+  const sun='<circle cx="9" cy="9" r="3.2" fill="currentColor"/><path d="M9 2v2M9 14v2M2 9h2M14 9h2M4.1 4.1l1.4 1.4M12.5 12.5l1.4 1.4M13.9 4.1l-1.4 1.4M5.5 12.5l-1.4 1.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>';
+  const cloud='<path d="M6.5 17.5h10.2a3.3 3.3 0 0 0 .4-6.6A5.4 5.4 0 0 0 6.8 9.6a4 4 0 0 0-.3 7.9Z" fill="currentColor"/>';
+  const rain=cloud+'<path d="M8 19.3l-1 2M12 19.3l-1 2M16 19.3l-1 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>';
+  const snow='<path d="M12 4v16M5.1 8l13.8 8M18.9 8 5.1 16M9.7 5.4 12 7.2l2.3-1.8M9.7 18.6 12 16.8l2.3 1.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>';
+  let body,label;
+  if(code===0){body=night?moon:sun;label=night?'Clear night':'Sunny';}
+  else if(code===1||code===2){body=(night?moon:sun)+cloud;label=code===1?'Mostly clear':'Partly cloudy';}
+  else if(code===3||code===45||code===48){body=cloud+(night?moon:'');label=code===3?'Cloudy':'Cloudy / foggy';}
+  else if((code>=51&&code<=67)||(code>=80&&code<=82)||(code>=95&&code<=99)){body=rain+(night?moon:'');label='Rainy';}
+  else if((code>=71&&code<=77)||(code>=85&&code<=86)){body=snow+(night?moon:'');label='Snowy';}
+  else{body=night?moon:cloud;label='Current weather';}
+  return {svg:`<svg viewBox="0 0 24 24" aria-hidden="true">${body}</svg>`,label};
+}
+function hoaRenderWeather(data){
+  const mount=document.getElementById('hoaWeatherMount');if(!mount||!data)return;
+  const icon=hoaWeatherIconSvg(Number(data.code),Number(data.isDay)===1);
+  const temp=Number.isFinite(Number(data.temp))?Math.round(Number(data.temp))+'°':'';
+  mount.innerHTML=`${icon.svg}<span>${temp?temp+' · ':''}${esc(icon.label)}</span>`;
+}
+function hoaRenderWeatherFromCache(){
+  try{const cached=JSON.parse(localStorage.getItem('hoa_weather_cache_v1')||'null');if(cached)hoaRenderWeather(cached);}catch{}
+}
+async function hoaRefreshWeather(force=false){
+  if(window.hoaWeatherFetchInFlight)return;
+  let cached=null;try{cached=JSON.parse(localStorage.getItem('hoa_weather_cache_v1')||'null');}catch{}
+  if(!force&&cached?.at&&Date.now()-cached.at<20*60*1000){hoaRenderWeather(cached);return;}
+  window.hoaWeatherFetchInFlight=true;
+  try{
+    const lat=Number(state.settings?.weatherLat)||33.0198,lon=Number(state.settings?.weatherLng)||-96.6989;
+    const url=`https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}&current=weather_code,is_day,temperature_2m&temperature_unit=fahrenheit&timezone=auto`;
+    const res=await fetch(url,{cache:'no-store'});
+    if(!res.ok)throw new Error('Weather unavailable');
+    const json=await res.json(),cur=json.current||{};
+    const data={code:Number(cur.weather_code),isDay:Number(cur.is_day),temp:Number(cur.temperature_2m),at:Date.now()};
+    localStorage.setItem('hoa_weather_cache_v1',JSON.stringify(data));hoaRenderWeather(data);
+  }catch(e){hoaRenderWeatherFromCache();}
+  finally{window.hoaWeatherFetchInFlight=false;}
+}
+if(!window.hoaWeatherRefreshTimer)window.hoaWeatherRefreshTimer=setInterval(()=>hoaRefreshWeather(true),30*60*1000);
+
+const hoaCalendarRemindersBase=typeof renderCalendar==='function'?renderCalendar:null;
+if(hoaCalendarRemindersBase){
+  renderCalendar=function(){
+    hoaCalendarRemindersBase();
+    const host=document.getElementById('content');if(!host||host.querySelector('.hoa-calendar-reminders'))return;
+    const rows=hoaEnsureReminders().filter(r=>r&&!r.done&&r.date>=todayISO()).sort((a,b)=>((a.date||'')+(a.time||'')).localeCompare((b.date||'')+(b.time||''))).slice(0,10);
+    host.insertAdjacentHTML('beforeend',`<section class="card hoa-calendar-reminders"><div class="section-title"><div><h3>Upcoming reminders</h3><p>Reminders live with your calendar instead of crowding Home.</p></div><button class="btn primary" onclick="hoaOpenDashboardReminder()">+ Add reminder</button></div>${rows.length?`<div class="hoa-calendar-reminder-list">${rows.map(r=>`<div class="hoa-reminder-row"><button class="hoa-reminder-check" onclick="hoaCompleteReminder('${r.id}')" aria-label="Mark reminder complete">○</button><div><b>${esc(r.title||'Reminder')}</b><span>${fmtDate(r.date)}${r.time?' · '+esc(r.time):''}</span></div></div>`).join('')}</div>`:'<div class="empty-state">No upcoming reminders yet.</div>'}</section>`);
+  };
+}
+
+function hoaLifeHomeView(){
+  const items=[
+    ['packages','Package Tracker','Incoming orders and deliveries','package'],
+    ['groceries','Grocery List','What the house actually needs','stockpile'],
+    ['stockpile','Home Stockpile','On-hand quantities and buy-under prices','home'],
+    ['beautyinv','Beauty Inventory','What you own, opened, low or repurchase','beauty'],
+    ['journal','Journal','Longer thoughts and entries','note'],
+    ['notes','Quick Notes','Fast lists, ideas and pins','note'],
+    ['review','Diana Check-In','A calm review of what is still open','cat']
+  ];
+  return `<div class="section-title"><div><h3>Home & everyday life</h3><p>The useful rooms, grouped instead of scattered through the sidebar.</p></div></div><div class="hoa-life-home-grid">${items.map(([view,title,sub,icon])=>`<button onclick="nav('${view}')"><span>${hoaIcon(icon,21)}</span><div><b>${title}</b><small>${sub}</small></div></button>`).join('')}</div>`;
+}
+renderLife=function(){
+  let tab=state.ui.lifeTab||'coupons';
+  if(tab==='future'||tab==='stockpile')tab='home';
+  if(!['coupons','wishlist','library','home'].includes(tab))tab='coupons';
+  state.ui.lifeTab=tab;
+  document.getElementById('content').innerHTML=`<div class="hero"><div><div class="eyebrow">LIFE & HOME</div><h2>Life Hub</h2><p>Shopping, beauty, home systems and personal lists — grouped into a few clear places.</p></div></div><div class="life-tabs hoa-life-tabs"><button class="btn ${tab==='coupons'?'active':''}" onclick="lifeTab('coupons')">Deals & Coupons</button><button class="btn ${tab==='wishlist'?'active':''}" onclick="lifeTab('wishlist')">Wishlist</button><button class="btn ${tab==='library'?'active':''}" onclick="lifeTab('library')">Beauty Library</button><button class="btn ${tab==='home'?'active':''}" onclick="lifeTab('home')">Home & Lists</button></div><div id="lifeContent"></div>`;
+  renderLifeTab();
+};
+lifeTab=function(t){state.ui.lifeTab=t;saveState(false);renderLifeTab();};
+renderLifeTab=function(){
+  const h=document.getElementById('lifeContent');if(!h)return;
+  const t=state.ui.lifeTab;
+  if(t==='coupons')h.innerHTML=couponView();
+  else if(t==='wishlist')h.innerHTML=wishlistView();
+  else if(t==='library')h.innerHTML=libraryView();
+  else h.innerHTML=hoaLifeHomeView();
+};
+
+function hoaOrganizeLowerNav(){
+  const sidebar=document.getElementById('sidebar');if(!sidebar)return;
+  sidebar.querySelectorAll('.hoa-nav-section-label,[data-hoa-lock-button]').forEach(x=>x.remove());
+  const life=sidebar.querySelector('.nav-btn[data-view="life"]');if(!life)return;
+  const parent=life.parentElement;
+  const groups=[
+    ['LIFE & HOME',['life','packages','groceries','stockpile','beautyinv']],
+    ['NOTES & CHECK-IN',['journal','notes','review']],
+    ['APP',['settings','backup']]
+  ];
+  const all=groups.flatMap(g=>g[1]).map(v=>sidebar.querySelector(`.nav-btn[data-view="${v}"]`)).filter(Boolean);
+  all.forEach(btn=>{if(btn.parentElement===parent)btn.remove();});
+  groups.forEach(([label,views])=>{
+    const heading=document.createElement('div');heading.className='hoa-nav-section-label';heading.textContent=label;parent.appendChild(heading);
+    views.forEach(v=>{const btn=sidebar.querySelector(`.nav-btn[data-view="${v}"]`)||all.find(b=>b.dataset.view===v);if(btn)parent.appendChild(btn);});
+    if(label==='APP'){
+      const lock=document.createElement('button');lock.className='nav-btn hoa-lock-nav';lock.dataset.hoaLockButton='1';lock.innerHTML=`<span class="nav-ico">${hoaIcon('settings',18)}</span><span class="nav-text">Lock / Log out</span>`;lock.onclick=()=>window.hoaExplicitLogout?.();parent.appendChild(lock);
+    }
+  });
+}
+const hoaDashboardV4RenderBase=render;
+render=function(){
+  const result=hoaDashboardV4RenderBase();
+  hoaOrganizeLowerNav();
+  return result;
+};
+hoaOrganizeLowerNav();
+if(currentView==='dashboard')render();

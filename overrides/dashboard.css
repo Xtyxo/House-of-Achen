@@ -221,3 +221,37 @@ body.hoa-dream-home .content{padding-top:16px}
   .hoa-cat-message{grid-template-columns:40px minmax(0,1fr) 40px}.hoa-cat-message img{width:40px;height:40px}
   .hoa-home-card{padding:13px}.hoa-home-card-head h2{font-size:16px}
 }
+
+
+/* Dashboard pass 4 — compact quick cards + sheets + weather + tidy Life */
+.hoa-dashboard-quick-dock{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.hoa-dashboard-quick-dock>button{min-width:0;border:1px solid rgba(92,67,122,.13);border-radius:16px;background:linear-gradient(145deg,#fff,#f8f2fb);padding:10px 8px;text-align:left;color:#342d48;box-shadow:0 7px 18px rgba(70,48,99,.06)}
+.hoa-dashboard-quick-dock>button>span{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;background:#eee6f5;color:#7a5787;margin-bottom:7px}
+.hoa-dashboard-quick-dock b,.hoa-dashboard-quick-dock small{display:block;overflow:hidden;text-overflow:ellipsis}.hoa-dashboard-quick-dock b{font-size:10px;white-space:nowrap}.hoa-dashboard-quick-dock small{margin-top:3px;font-size:8px;color:#81758a;white-space:nowrap}
+
+.hoa-home-sheet-bg{position:fixed;inset:0;z-index:500;display:none;align-items:flex-end;justify-content:center;background:rgba(22,18,36,.34);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.hoa-home-sheet-bg.open{display:flex}.hoa-home-sheet{width:min(100%,620px);max-height:58%;min-height:38%;overflow:auto;border-radius:26px 26px 0 0;background:linear-gradient(180deg,#fff,#fbf7fd);border:1px solid #e8ddea;border-bottom:0;padding:16px 16px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -18px 48px rgba(39,28,57,.18)}
+.hoa-home-sheet-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}.hoa-home-sheet-head small{font-size:8px;letter-spacing:.13em;color:#8a668f;font-weight:900}.hoa-home-sheet-head h2{margin:3px 0 0;font:650 20px Georgia,serif;color:#302a4d}.hoa-home-sheet-head>button{width:38px;height:38px;border:0;border-radius:12px;background:#f1e9f5;color:#684d73;font-size:22px}
+.hoa-sheet-textarea{width:100%;min-height:150px;border:1px solid #dfd3e5;border-radius:15px;background:#fff;padding:13px;font-size:16px;line-height:1.45;color:#342d48;resize:vertical;outline:none}.hoa-sheet-brain{min-height:220px}.hoa-home-sheet-body>p{font-size:9px;color:#82768a;line-height:1.45;margin:8px 2px 0}
+.hoa-sheet-selfcare{display:grid;gap:8px}.hoa-sheet-selfcare>button{min-height:44px;border:1px solid #e5daea;border-radius:13px;background:#fff;text-align:left;padding:10px 12px;color:#675a70;font-size:11px;font-weight:750}.hoa-sheet-selfcare>button span{display:inline-block;width:22px}.hoa-sheet-selfcare>button.done{background:linear-gradient(145deg,#f5eafa,#e8f5ed);color:#5e4769}.hoa-sheet-edit{margin-top:12px;border:1px solid #dfd2e6;border-radius:12px;background:#faf6fc;color:#72527f;padding:9px 11px;font-size:10px;font-weight:850}
+body.hoa-sheet-open{overflow:hidden}
+
+.hoa-weather-mini{margin-top:6px;display:flex!important;align-items:center;justify-content:center;gap:4px;color:#fff!important;font-size:8px!important;line-height:1}.hoa-weather-mini svg{width:17px;height:17px;flex:0 0 auto;overflow:visible}.hoa-weather-mini span{font-size:8px!important;margin:0!important;color:#fff!important}
+
+.hoa-calendar-reminders{margin-top:16px}.hoa-calendar-reminder-list{display:grid;gap:7px;margin-top:10px}
+
+.hoa-life-tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}.hoa-life-home-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.hoa-life-home-grid>button{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:10px;text-align:left;border:1px solid #eadfea;border-radius:16px;background:linear-gradient(145deg,#fff,#faf6fd);padding:12px;color:#352e49}.hoa-life-home-grid>button>span{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:#eee6f5;color:#785884}.hoa-life-home-grid b,.hoa-life-home-grid small{display:block}.hoa-life-home-grid b{font-size:11px}.hoa-life-home-grid small{font-size:8.5px;color:#83778a;margin-top:3px;line-height:1.35}
+
+.hoa-nav-section-label{padding:15px 14px 5px;color:#a598ad;font-size:8px;font-weight:900;letter-spacing:.14em}.hoa-lock-nav{opacity:.9}
+
+@media(max-width:780px){
+  body.hoa-dream-home .content,.content{padding-bottom:calc(178px + env(safe-area-inset-bottom))!important}
+  .hoa-dashboard-quick-dock{position:fixed;z-index:84;left:8px;right:8px;bottom:calc(84px + env(safe-area-inset-bottom));gap:5px;padding:6px;border:1px solid rgba(255,255,255,.58);border-radius:18px;background:rgba(250,246,253,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 12px 30px rgba(31,23,48,.16)}
+  .hoa-dashboard-quick-dock>button{padding:7px 6px;border-radius:12px;box-shadow:none;background:rgba(255,255,255,.78);text-align:center}
+  .hoa-dashboard-quick-dock>button>span{width:26px;height:26px;margin:0 auto 4px}.hoa-dashboard-quick-dock b{font-size:8.5px}.hoa-dashboard-quick-dock small{font-size:7px}
+  .hoa-home-sheet{max-height:56%;min-height:44%}
+}
+@media(max-width:430px){
+  .hoa-life-home-grid{grid-template-columns:1fr}
+  .hoa-dashboard-quick-dock b{font-size:8px}.hoa-dashboard-quick-dock small{display:none}
+}
