@@ -22,7 +22,7 @@ const approvedCatAssets = [
   'assets/cats/diana-full.webp',
   'assets/cats/diana-head.webp',
 ];
-const appIconSource = 'app-icon-source.jpg';
+const appIconSource = 'icon-512.png';
 const overrideFiles = ['app.css', 'app.js', 'crochet.css', 'crochet.js', 'finance.css', 'finance.js', 'dashboard.css', 'dashboard.js'];
 
 async function ensureParent(file) {
@@ -54,8 +54,8 @@ for (const file of approvedCatAssets) {
 
 await access(appIconSource);
 const iconMeta = await sharp(appIconSource).metadata();
-if (iconMeta.format !== 'jpeg' || iconMeta.width !== iconMeta.height || iconMeta.width < 512) {
-  throw new Error(`Invalid app icon source: expected square JPEG at least 512px, got ${iconMeta.format || 'unknown'} ${iconMeta.width || '?'}x${iconMeta.height || '?'}`);
+if (iconMeta.format !== 'png' || iconMeta.width !== iconMeta.height || iconMeta.width < 512) {
+  throw new Error(`Invalid app icon source: expected square PNG at least 512px, got ${iconMeta.format || 'unknown'} ${iconMeta.width || '?'}x${iconMeta.height || '?'}`);
 }
 for (const size of [192, 512]) {
   await sharp(appIconSource)
