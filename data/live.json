@@ -1,6 +1,6 @@
 {
-  "publishedAt": "2026-09-20T05:35:00Z",
-  "source": "Nova • ChatGPT Finances • latest available balances",
+  "publishedAt": "2026-09-21T01:20:00Z",
+  "source": "Nova • ChatGPT Finances • refreshed balances; Ally adjusted from recent bank activity",
   "accounts": [
     {
       "id": "acct_paypal",
@@ -43,12 +43,12 @@
       "name": "Capital One 360 Checking",
       "institution": "Capital One",
       "type": "Bank",
-      "rawBalance": -16.75,
-      "currentBalance": -16.75,
+      "rawBalance": -0.17,
+      "currentBalance": -0.17,
       "connected": true,
       "snapshot": true,
       "asOf": null,
-      "freshness": "Latest available snapshot; source-reported balance time unavailable"
+      "freshness": "Plaid latest available snapshot; source-reported balance time unavailable"
     },
     {
       "id": "acct_capone_save",
@@ -60,7 +60,7 @@
       "connected": true,
       "snapshot": true,
       "asOf": null,
-      "freshness": "Latest available snapshot; source-reported balance time unavailable"
+      "freshness": "Plaid latest available snapshot; source-reported balance time unavailable"
     },
     {
       "id": "acct_marcus",
@@ -115,12 +115,12 @@
       "name": "Ally Spending",
       "institution": "Ally Bank",
       "type": "Bank",
-      "rawBalance": 223.41,
-      "currentBalance": 223.41,
+      "rawBalance": -31.23,
+      "currentBalance": -31.23,
       "connected": true,
       "snapshot": true,
       "asOf": null,
-      "freshness": "Latest available snapshot; source-reported balance time unavailable"
+      "freshness": "Transaction-adjusted estimate from the corrected $23.41 baseline, recent posted purchases, and one pending $24.45 charge; Plaid balance snapshot is stale"
     },
     {
       "id": "acct_current",
