@@ -504,3 +504,196 @@ renderPayday=function(){
   hoaInstallWorkbookPaycheckInputs();
   return out;
 };
+
+
+// Payday Desk rebuild: direct mobile mirror of House of Achen workbook.
+function hoaPaydayDerived(p){
+  const c=hoaWorkbookPaycheckMath(p);
+  return {
+    ...c,
+    fundTarget:(p?.allocations||[]).reduce((s,a)=>s+Math.max(0,num(a.planned)),0),
+    fundRemaining:c.allocationRemaining,
+    billsDue:Math.max(0,num(p?.billsDue)),
+    quickPlanned:(p?.quickSpend||[]).reduce((s,q)=>s+Math.max(0,num(q.cap)),0),
+    quickRemaining:c.quickRemaining,
+    cushion:Math.max(0,num(p?.cushion))
+  };
+}
+function hoaPaydayStatus(c){
+  if(c.actualCashLeft<0)return 'Overdrawn / spending exceeds tracked cash';
+  if(c.safe===0){
+    if(c.stillNeed>0)return 'No extra safe spending room — the remaining plan uses the available cash';
+    return 'No safe spending room yet';
+  }
+  return 'Remaining funding + Quick Spend + cushion are covered';
+}
+function hoaPaydayInput(label,field,value,help=''){
+  return `<label class="hoa-pd-input"><span>${esc(label)}</span><input type="number" inputmode="decimal" min="0" step=".01" value="${Math.max(0,num(value))}" oninput="hoaPaydaySetInput('${field}',this.value)">${help?`<small>${esc(help)}</small>`:''}</label>`;
+}
+function hoaPaydaySetInput(field,value){
+  const p=selectedPaycheck();
+  if(!p||!['netPay','startingChecking','billsDue','otherIncome','cushion'].includes(field))return;
+  p[field]=Math.max(0,num(value));
+  markPayEdited(p);saveState(false);hoaRefreshPaydayNumbers();
+}
+function hoaPaydaySetAllocation(index,field,value){
+  const p=selectedPaycheck(),a=p?.allocations?.[index];
+  if(!a||!['planned','moved'].includes(field))return;
+  a[field]=Math.max(0,num(value));
+  markPayEdited(p);saveState(false);hoaRefreshPaydayNumbers();
+}
+function hoaPaydaySetQuick(index,field,value){
+  const p=selectedPaycheck(),q=p?.quickSpend?.[index];if(!q)return;
+  if(field==='cap')q.cap=Math.max(0,num(value));
+  else if(field==='priority')q.priority=value;
+  else if(field==='notes')q.notes=value;
+  else return;
+  markPayEdited(p);saveState(false);hoaRefreshPaydayNumbers();
+}
+function hoaPaydaySetNotes(value){
+  const p=selectedPaycheck();if(!p)return;p.notes=value;markPayEdited(p);saveState(false);
+}
+function hoaPaydayFundRows(p){
+  if(!(p?.allocations||[]).length)return '<div class="empty-state">No Fund rows yet. Add the funds/bills this paycheck needs to cover.</div>';
+  return `<div class="hoa-pd-table-wrap"><table class="hoa-pd-table"><thead><tr><th>Fund</th><th>Target This Check</th><th>Actually Moved</th><th>Still Needed</th><th></th></tr></thead><tbody>${p.allocations.map((a,i)=>{
+    const planned=Math.max(0,num(a.planned)),moved=Math.max(0,num(a.moved));
+    return `<tr>
+      <td><b>${esc(a.name)}</b><small>${esc(a.group||'')}</small></td>
+      <td><input type="number" inputmode="decimal" min="0" step=".01" value="${planned}" oninput="hoaPaydaySetAllocation(${i},'planned',this.value)"></td>
+      <td><input type="number" inputmode="decimal" min="0" step=".01" value="${moved}" oninput="hoaPaydaySetAllocation(${i},'moved',this.value)"></td>
+      <td class="hoa-pd-formula" data-pd-fund-remaining="${i}">${money(Math.max(0,planned-moved))}</td>
+      <td><button class="btn tiny" onclick="openAllocationModal(${i})">Edit</button></td>
+    </tr>`;
+  }).join('')}</tbody></table></div>`;
+}
+function hoaPaydayQuickRows(p){
+  if(!(p?.quickSpend||[]).length)return '<div class="empty-state">No Quick Spend buckets yet.</div>';
+  return `<div class="hoa-pd-table-wrap"><table class="hoa-pd-table hoa-pd-quick-table"><thead><tr><th>Quick Spend Bucket</th><th>Planned Cap</th><th>Priority</th><th>Notes</th><th>Spent</th><th>Remaining</th><th></th></tr></thead><tbody>${p.quickSpend.map((q,i)=>{
+    const spent=hoaQuickLedgerSpent(p,q.name),remaining=Math.max(0,num(q.cap)-spent);
+    return `<tr>
+      <td><b>${esc(q.name)}</b></td>
+      <td><input type="number" inputmode="decimal" min="0" step=".01" value="${Math.max(0,num(q.cap))}" oninput="hoaPaydaySetQuick(${i},'cap',this.value)"></td>
+      <td><select onchange="hoaPaydaySetQuick(${i},'priority',this.value)">${['Essential','Planned','Fun','Flex'].map(x=>`<option ${x===q.priority?'selected':''}>${x}</option>`).join('')}</select></td>
+      <td><input type="text" value="${esc(q.notes||'')}" placeholder="Optional" oninput="hoaPaydaySetQuick(${i},'notes',this.value)"></td>
+      <td class="hoa-pd-formula" data-pd-quick-spent="${i}">${money(spent)}</td>
+      <td class="hoa-pd-formula" data-pd-quick-remaining="${i}">${money(remaining)}</td>
+      <td><button class="btn tiny" onclick="openQuickModal(${i})">Edit</button></td>
+    </tr>`;
+  }).join('')}</tbody></table></div>`;
+}
+function hoaPaydayWorkbookBreakdown(p,c){
+  return `<div class="hoa-pd-breakdown">
+    <div><span>Available Cash</span><b data-pd-break="available">${money(c.available)}</b><small>Net Pay + Starting Checking + Other Income</small></div>
+    <div><span>Actually Moved</span><b data-pd-break="moved">${money(c.moved)}</b><small>Sum of the Fund table's Actually Moved column</small></div>
+    <div><span>Logged Spending</span><b data-pd-break="logged">${money(c.logged)}</b><small>Completed spending attached to this paycheck</small></div>
+    <div class="accent"><span>Actual Cash Left Now</span><b data-pd-break="actual">${money(c.actualCashLeft)}</b><small>Available Cash − Actually Moved − Logged Spending</small></div>
+    <div><span>Fund Rows Still Needed</span><b data-pd-break="fundRemaining">${money(c.fundRemaining)}</b><small>Target This Check − Actually Moved, summed</small></div>
+    <div><span>Bills Due Before Next Check</span><b data-pd-break="billsDue">${money(c.billsDue)}</b><small>The separate Bills Due input above</small></div>
+    <div><span>Quick Spend Still Planned</span><b data-pd-break="quickRemaining">${money(c.quickRemaining)}</b><small>Planned Cap − Spent, summed</small></div>
+    <div class="accent-blue"><span>Still Need To Fund</span><b data-pd-break="stillNeed">${money(c.stillNeed)}</b><small>Fund Still Needed + Bills Due + Quick Spend Remaining</small></div>
+    <div><span>Keep-in-Checking Cushion</span><b data-pd-break="cushion">${money(c.cushion)}</b><small>Protected after the remaining plan</small></div>
+    <div class="accent-rose"><span>Safe To Spend</span><b data-pd-break="safe">${money(c.safe)}</b><small>MAX(0, Actual Cash Left − Still Need To Fund − Cushion)</small></div>
+  </div>`;
+}
+function hoaRefreshPaydayNumbers(){
+  if(currentView!=='payday')return;
+  const p=selectedPaycheck();if(!p)return;
+  const c=hoaPaydayDerived(p);
+  const set=(sel,val)=>{const el=document.querySelector(sel);if(el)el.textContent=val;};
+  set('[data-pd-kpi="netPay"]',money(p.netPay));
+  set('[data-pd-kpi="actual"]',money(c.actualCashLeft));
+  set('[data-pd-kpi="stillNeed"]',money(c.stillNeed));
+  set('[data-pd-kpi="safe"]',money(c.safe));
+  set('[data-pd-status]',hoaPaydayStatus(c));
+  const map={available:c.available,moved:c.moved,logged:c.logged,actual:c.actualCashLeft,fundRemaining:c.fundRemaining,billsDue:c.billsDue,quickRemaining:c.quickRemaining,stillNeed:c.stillNeed,cushion:c.cushion,safe:c.safe};
+  Object.entries(map).forEach(([k,v])=>set(`[data-pd-break="${k}"]`,money(v)));
+  (p.allocations||[]).forEach((a,i)=>set(`[data-pd-fund-remaining="${i}"]`,money(Math.max(0,num(a.planned)-num(a.moved)))));
+  (p.quickSpend||[]).forEach((q,i)=>{
+    const spent=hoaQuickLedgerSpent(p,q.name);
+    set(`[data-pd-quick-spent="${i}"]`,money(spent));
+    set(`[data-pd-quick-remaining="${i}"]`,money(Math.max(0,num(q.cap)-spent)));
+  });
+}
+renderPayday=function(){
+  const p=selectedPaycheck();
+  const list=paychecksSorted().filter(x=>!x.historyOnly||x.id===p?.id);
+  const c=hoaPaydayDerived(p);
+  document.getElementById('content').innerHTML=`
+  <div class="hoa-pd-page">
+    <section class="hoa-pd-hero">
+      <div><div class="eyebrow">HOUSE OF ACHEN · PAYDAY DESK</div><h2>Payday Desk</h2><p>Your workbook math, rebuilt for your phone. Numbers entered here are the source of the calculations below.</p></div>
+      <div class="hoa-pd-hero-actions"><button class="btn" onclick="nav('payday-live')">Bank Activity</button><button class="btn" onclick="openPaycheckModal('${p?.id||''}')">Paycheck details</button><button class="btn primary" onclick="openPaycheckModal()">+ New paycheck</button></div>
+    </section>
+
+    <section class="card hoa-pd-selector">
+      <label><span>Viewing paycheck</span><select onchange="state.selectedPaycheckId=this.value;saveState(false);renderPayday()">${list.map(x=>`<option value="${x.id}" ${x.id===p?.id?'selected':''}>${esc(x.name)} · ${fmtDate(x.date)}</option>`).join('')}</select></label>
+      <div><span>Paycheck Date</span><b>${p?fmtDate(p.date):'—'}</b></div>
+    </section>
+
+    ${p?`
+    <section class="card hoa-pd-input-card">
+      <div class="section-title"><div><h3>Paycheck Inputs</h3><p>These are the same editable inputs at the top of your 💗 PAYDAY DESK spreadsheet.</p></div></div>
+      <div class="hoa-pd-input-grid">
+        ${hoaPaydayInput('Net Pay / Take Home','netPay',p.netPay)}
+        ${hoaPaydayInput('Starting Checking Balance','startingChecking',p.startingChecking)}
+        ${hoaPaydayInput('Bills Due Before Next Check','billsDue',p.billsDue)}
+        ${hoaPaydayInput('Expected Other Income','otherIncome',p.otherIncome)}
+        ${hoaPaydayInput('Keep-in-Checking Cushion','cushion',p.cushion)}
+      </div>
+      <label class="hoa-pd-notes"><span>Notes</span><textarea oninput="hoaPaydaySetNotes(this.value)" placeholder="Paycheck notes…">${esc(p.notes||'')}</textarea></label>
+    </section>
+
+    <section class="hoa-pd-kpis">
+      <article><span>Net Pay</span><b data-pd-kpi="netPay">${money(p.netPay)}</b></article>
+      <article><span>Actual Cash Left Now</span><b data-pd-kpi="actual">${money(c.actualCashLeft)}</b></article>
+      <article class="blue"><span>Still Need To Fund</span><b data-pd-kpi="stillNeed">${money(c.stillNeed)}</b></article>
+      <article class="rose"><span>Safe To Spend</span><b data-pd-kpi="safe">${money(c.safe)}</b></article>
+    </section>
+    <div class="hoa-pd-status" data-pd-status>${hoaPaydayStatus(c)}</div>
+
+    <section class="card hoa-pd-explain">
+      <div class="section-title"><div><h3>Where every total comes from</h3><p>No mystery totals. This is the exact calculation chain feeding the four numbers above.</p></div></div>
+      ${hoaPaydayWorkbookBreakdown(p,c)}
+    </section>
+
+    <section class="hoa-pd-section">
+      <div class="section-title"><div><h3>Fund Plan</h3><p><b>Still Needed = MAX(0, Target This Check − Actually Moved).</b> Edit the dollar cells directly; totals update immediately.</p></div><button class="btn" onclick="openAllocationModal()">+ Add fund</button></div>
+      ${hoaPaydayFundRows(p)}
+    </section>
+
+    <section class="hoa-pd-section">
+      <div class="section-title"><div><h3>Quick Spend</h3><p>Spent comes from completed spending attached to this paycheck, like the spreadsheet's Spending Log. Remaining = Planned Cap − Spent.</p></div><div class="hoa-pd-section-actions"><button class="btn" onclick="nav('spending')">Open Spending Log</button><button class="btn" onclick="openQuickModal()">+ Add bucket</button></div></div>
+      ${hoaPaydayQuickRows(p)}
+    </section>
+    `:'<div class="empty-state">Create a paycheck to begin.</div>'}
+  </div>`;
+};
+
+const hoaPaydayRebuildBaseDecorate=hoaDecorateNavigation;
+hoaDecorateNavigation=function(){
+  hoaPaydayRebuildBaseDecorate();
+  const sidebar=document.getElementById('sidebar');if(!sidebar)return;
+  const planner=sidebar.querySelector('.nav-btn[data-view="payday"]');
+  const live=sidebar.querySelector('.nav-btn[data-view="payday-live"]');
+  if(planner){
+    planner.innerHTML=`<span class="nav-ico">${hoaIcon('planner',18)}</span><span class="nav-text">Payday Desk</span>`;
+    planner.onclick=()=>nav('payday');
+  }
+  if(live){
+    live.innerHTML=`<span class="nav-ico">${hoaIcon('wallet',18)}</span><span class="nav-text">Bank Activity</span>`;
+    live.onclick=()=>nav('payday-live');
+  }
+};
+const hoaPaydayRebuildBaseLive=renderPaydayLive;
+renderPaydayLive=function(){
+  hoaPaydayRebuildBaseLive();
+  const h2=document.querySelector('#content .hoa-live-hero h2');
+  const eyebrow=document.querySelector('#content .hoa-live-hero .eyebrow');
+  if(h2)h2.textContent='Bank Activity';
+  if(eyebrow)eyebrow.textContent='BANK SNAPSHOT + RECONCILIATION';
+  document.querySelectorAll('#content button').forEach(btn=>{
+    if(btn.textContent.includes('Open Paycheck Planner'))btn.innerHTML=`${hoaIcon('planner',16)} Open Payday Desk`;
+  });
+};
+hoaDecorateNavigation();
+if(currentView==='payday')renderPayday();
