@@ -15,3 +15,55 @@ body{background:radial-gradient(circle at 82% 2%,rgba(203,188,255,.40),transpare
 .hoa-paycheck-match{margin-top:18px}.hoa-card-title{display:flex;align-items:center;gap:8px;color:#5b3f69;font-weight:750;margin-bottom:13px}.hoa-estimate-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.hoa-estimate-grid>div{background:linear-gradient(135deg,#fbf7ff,#fff6fa);border:1px solid #eadcf0;border-radius:12px;padding:10px}.hoa-estimate-grid span{display:block;font-size:10px;color:#806f87}.hoa-estimate-grid b{display:block;color:#3a2e4b;margin-top:3px}.hoa-estimate-card p{font-size:11px;color:#776b7c;line-height:1.5}.hoa-payroll-amount{font:700 36px Georgia,serif;color:#764a83;margin:18px 0 5px}.hoa-no-match{background:linear-gradient(135deg,#f8efff,#eef5ff);border:1px solid #e1d6ee;border-radius:14px;padding:16px;color:#665a70;line-height:1.55}.hoa-variance{margin-top:14px;background:#f9edf4;border-radius:10px;padding:9px 11px;color:#754f68;font-size:11px}
 .hoa-diana-review{display:grid;grid-template-columns:100px 1fr;align-items:center;gap:16px;margin-top:18px;background:linear-gradient(120deg,#f9efff,#fff0f6 55%,#eef5ff)!important;border-color:#d9c5e8!important}.hoa-diana-art{width:94px}.hoa-diana-art .cat-svg{width:100%}.hoa-diana-review h3{margin:4px 0 5px}.hoa-diana-review p{margin:0;color:#6f6276;line-height:1.5}.hoa-tx-wrap{border:1px solid #ddcfeb;border-radius:18px;box-shadow:0 10px 28px rgba(78,52,107,.07);background:#fff}.hoa-tx-table{min-width:1180px}.hoa-tx-table tr.needs-review td{background:rgba(255,241,247,.55)}.hoa-tx-table tr.is-reviewed td:first-child{box-shadow:inset 3px 0 0 #a9d2bd}.hoa-tx-table .btn svg{vertical-align:middle}.hoa-tx-table .btn[disabled]{opacity:.58}.hoa-icon{flex:0 0 auto}
 @media(max-width:1100px){.hoa-account-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hoa-live-hero{grid-template-columns:1fr}.hoa-cat-duo{min-height:160px}.hoa-cat{width:120px}}@media(max-width:700px){.hoa-account-grid{grid-template-columns:1fr}.hoa-live-hero{padding:20px}.hoa-live-actions{display:grid;grid-template-columns:1fr}.hoa-live-actions .btn{width:100%}.hoa-cat{width:105px}.hoa-estimate-grid{grid-template-columns:1fr 1fr}.hoa-diana-review{grid-template-columns:76px 1fr}.hoa-diana-art{width:72px}}@media(max-width:480px){.hoa-estimate-grid{grid-template-columns:1fr}.hoa-live-hero h2{font-size:34px}}
+
+
+/* Spreadsheet-parity Paycheck Planner */
+.hoa-workbook-plan-table .hoa-money-cell,
+.hoa-workbook-inputs .hoa-money-cell{
+  width:118px;
+  max-width:100%;
+  min-height:38px;
+  padding:8px 9px;
+  border:1px solid #dfd4e6;
+  border-radius:10px;
+  background:#fff;
+  color:#342d48;
+  font:700 14px/1.2 system-ui,sans-serif;
+  text-align:right;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+}
+.hoa-workbook-plan-table .hoa-money-cell:focus,
+.hoa-workbook-inputs .hoa-money-cell:focus{
+  outline:none;
+  border-color:#b792c8;
+  box-shadow:0 0 0 3px rgba(183,146,200,.14);
+}
+.hoa-formula-cell{font-weight:850;color:#574260}
+.hoa-workbook-inputs{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:9px!important;
+}
+.hoa-workbook-inputs label{
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  padding:9px 10px;
+  border:1px solid #eadfeb;
+  border-radius:12px;
+  background:#fbf8fd;
+}
+.hoa-workbook-inputs label span{
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  color:#7d7185;
+}
+.hoa-workbook-inputs label .hoa-money-cell{
+  width:100%;
+}
+@media(max-width:620px){
+  .hoa-workbook-inputs{grid-template-columns:1fr}
+  .hoa-workbook-plan-table .hoa-money-cell{width:96px}
+}

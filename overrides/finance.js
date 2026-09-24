@@ -349,3 +349,158 @@ addBankTxToLedger=function(id){
   if(t?.paydeskCategory==='__IGNORE__')return toast('This bank row is marked Ignore.');
   return hoaPass2BaseAddBankTx(id);
 };
+
+
+// Spreadsheet parity: make Paycheck Planner recalculate from the House of Achen workbook formula chain.
+function hoaWorkbookPaycheckMath(p){
+  if(!p)return {available:0,moved:0,logged:0,actualCashLeft:0,stillNeed:0,safe:0,quickRemaining:0,allocationRemaining:0};
+
+  const tx=paycheckTransactions(p);
+  let logged=tx
+    .filter(t=>t.status==='Done'&&t.group!=='Income'&&t.countedElsewhere!==true)
+    .reduce((sum,t)=>sum+Math.abs(num(t.paidAmount||t.plannedAmount)),0);
+
+  // A manual Quick Spend total replaces the ledger total for that bucket,
+  // matching the spreadsheet's "Spent" -> "Remaining" relationship.
+  (p.quickSpend||[]).forEach(q=>{
+    if(q.spentManual===null||q.spentManual===undefined||q.spentManual==='')return;
+    const ledger=typeof hoaQuickLedgerSpent==='function'?hoaQuickLedgerSpent(p,q.name):0;
+    logged+=Math.max(0,num(q.spentManual))-ledger;
+  });
+
+  const moved=(p.allocations||[]).reduce((sum,a)=>sum+Math.max(0,num(a.moved)),0);
+  const allocationRemaining=(p.allocations||[]).reduce(
+    (sum,a)=>sum+Math.max(0,Math.max(0,num(a.planned))-Math.max(0,num(a.moved))),0
+  );
+  const quickRemaining=(p.quickSpend||[]).reduce((sum,q)=>{
+    const spent=typeof hoaQuickEffectiveSpent==='function'
+      ? hoaQuickEffectiveSpent(p,q)
+      : Math.max(0,num(q.spentManual));
+    return sum+Math.max(0,Math.max(0,num(q.cap))-spent);
+  },0);
+
+  // Exact workbook chain:
+  // Available Cash = Net Pay + Starting Checking + Other Income
+  // Actual Cash Left = Available Cash - Actually Moved - Logged Spending
+  // Still Need = Remaining Fund/Bill Plan + Bills Due Before Next Check + Quick Spend Remaining
+  // Safe to Spend = MAX(0, Actual Cash Left - Still Need - Cushion)
+  const available=num(p.netPay)+num(p.startingChecking)+num(p.otherIncome);
+  const actualCashLeft=available-moved-logged;
+  const stillNeed=allocationRemaining+Math.max(0,num(p.billsDue))+quickRemaining;
+  const safe=Math.max(0,actualCashLeft-stillNeed-Math.max(0,num(p.cushion)));
+
+  return {available,moved,logged,actualCashLeft,stillNeed,safe,quickRemaining,allocationRemaining};
+}
+
+const hoaWorkbookParityBaseCalc=calcPaycheck;
+calcPaycheck=function(p){
+  if(!p)return hoaWorkbookPaycheckMath(p);
+  // Keep the original imported historical snapshot untouched until the user edits it.
+  if(p.importedSnapshot&&!p.edited)return hoaWorkbookParityBaseCalc(p);
+  return hoaWorkbookPaycheckMath(p);
+};
+
+function hoaPlannerNumber(value){
+  const n=num(value);
+  return Number.isFinite(n)?Math.max(0,n):0;
+}
+function hoaSetPaycheckInput(field,value){
+  const p=selectedPaycheck();
+  if(!p)return;
+  if(!['netPay','startingChecking','otherIncome','billsDue','cushion'].includes(field))return;
+  p[field]=hoaPlannerNumber(value);
+  markPayEdited(p);
+  saveState(false);
+  renderPayday();
+}
+function hoaSetAllocationNumber(index,field,value){
+  const p=selectedPaycheck(),a=p?.allocations?.[index];
+  if(!a||!['planned','moved'].includes(field))return;
+  a[field]=hoaPlannerNumber(value);
+  markPayEdited(p);
+  saveState(false);
+  renderPayday();
+}
+function hoaSetQuickNumber(index,field,value){
+  const p=selectedPaycheck(),q=p?.quickSpend?.[index];
+  if(!q||!['cap','spentManual'].includes(field))return;
+  if(field==='spentManual'){
+    const raw=String(value??'').trim();
+    q.spentManual=raw===''?null:hoaPlannerNumber(raw);
+  }else{
+    q.cap=hoaPlannerNumber(value);
+  }
+  markPayEdited(p);
+  saveState(false);
+  renderPayday();
+}
+
+allocationTable=function(p){
+  if(!p||!(p.allocations||[]).length)return '<div class="empty-state">No fund lines for this paycheck yet.</div>';
+  return `<div class="table-wrap"><table class="table hoa-workbook-plan-table">
+    <thead><tr><th>Fund / bill</th><th>Group</th><th>Target This Check</th><th>Actually Moved</th><th>Still Needed</th><th></th></tr></thead>
+    <tbody>${p.allocations.map((a,i)=>{
+      const planned=Math.max(0,num(a.planned)),moved=Math.max(0,num(a.moved)),remaining=Math.max(0,planned-moved);
+      return `<tr>
+        <td><b>${esc(a.name)}</b></td>
+        <td>${groupChip(a.group)}</td>
+        <td><input class="hoa-money-cell" aria-label="Target this check for ${esc(a.name)}" type="number" min="0" step=".01" value="${planned}" onchange="hoaSetAllocationNumber(${i},'planned',this.value)"></td>
+        <td><input class="hoa-money-cell" aria-label="Actually moved for ${esc(a.name)}" type="number" min="0" step=".01" value="${moved}" onchange="hoaSetAllocationNumber(${i},'moved',this.value)"></td>
+        <td class="money hoa-formula-cell">${money(remaining)}</td>
+        <td class="nowrap"><button class="btn tiny" onclick="openAllocationModal(${i})">Name / group</button> <button class="btn tiny danger" onclick="deleteAllocation(${i})">×</button></td>
+      </tr>`;
+    }).join('')}</tbody></table></div>`;
+};
+
+quickTable=function(p){
+  if(!p||!(p.quickSpend||[]).length)return '<div class="empty-state">No quick-spend buckets yet.</div>';
+  return `<div class="table-wrap"><table class="table hoa-workbook-plan-table">
+    <thead><tr><th>Quick Spend Bucket</th><th>Planned Cap</th><th>Priority</th><th>Spent</th><th>Remaining</th><th>Source</th><th></th></tr></thead>
+    <tbody>${p.quickSpend.map((q,i)=>{
+      const ledger=typeof hoaQuickLedgerSpent==='function'?hoaQuickLedgerSpent(p,q.name):0;
+      const manual=!(q.spentManual===null||q.spentManual===undefined||q.spentManual==='');
+      const spent=typeof hoaQuickEffectiveSpent==='function'?hoaQuickEffectiveSpent(p,q):ledger;
+      const remaining=Math.max(0,num(q.cap)-spent);
+      return `<tr>
+        <td><b>${esc(q.name)}</b></td>
+        <td><input class="hoa-money-cell" aria-label="Planned cap for ${esc(q.name)}" type="number" min="0" step=".01" value="${Math.max(0,num(q.cap))}" onchange="hoaSetQuickNumber(${i},'cap',this.value)"></td>
+        <td>${esc(q.priority||'')}</td>
+        <td><input class="hoa-money-cell" aria-label="Spent for ${esc(q.name)}" type="number" min="0" step=".01" value="${spent}" onchange="hoaSetQuickNumber(${i},'spentManual',this.value)"></td>
+        <td class="money hoa-formula-cell">${money(remaining)}</td>
+        <td><span class="mini-tag">${manual?'Manual total':`Ledger · ${money(ledger)}`}</span></td>
+        <td><button class="btn tiny" onclick="openQuickModal(${i})">Edit</button> <button class="btn tiny danger" onclick="deleteQuick(${i})">×</button></td>
+      </tr>`;
+    }).join('')}</tbody></table></div>`;
+};
+
+function hoaInstallWorkbookPaycheckInputs(){
+  if(currentView!=='payday')return;
+  const p=selectedPaycheck();
+  if(!p)return;
+  const cards=[...document.querySelectorAll('#content .card')];
+  const inputCard=cards.find(card=>card.querySelector('h3')?.textContent.trim()==='Paycheck inputs');
+  const summary=inputCard?.querySelector('.pay-summary');
+  if(summary){
+    summary.classList.add('hoa-workbook-inputs');
+    summary.innerHTML=`
+      <label><span>Net Pay / Take Home</span><input class="hoa-money-cell" type="number" min="0" step=".01" value="${Math.max(0,num(p.netPay))}" onchange="hoaSetPaycheckInput('netPay',this.value)"></label>
+      <label><span>Starting Checking Balance</span><input class="hoa-money-cell" type="number" min="0" step=".01" value="${Math.max(0,num(p.startingChecking))}" onchange="hoaSetPaycheckInput('startingChecking',this.value)"></label>
+      <label><span>Expected Other Income</span><input class="hoa-money-cell" type="number" min="0" step=".01" value="${Math.max(0,num(p.otherIncome))}" onchange="hoaSetPaycheckInput('otherIncome',this.value)"></label>
+      <label><span>Bills Due Before Next Check</span><input class="hoa-money-cell" type="number" min="0" step=".01" value="${Math.max(0,num(p.billsDue))}" onchange="hoaSetPaycheckInput('billsDue',this.value)"></label>
+      <label><span>Keep-in-Checking Cushion</span><input class="hoa-money-cell" type="number" min="0" step=".01" value="${Math.max(0,num(p.cushion))}" onchange="hoaSetPaycheckInput('cushion',this.value)"></label>
+    `;
+  }
+  const sections=[...document.querySelectorAll('#content .section-title')];
+  const fundSection=sections.find(s=>s.querySelector('h3')?.textContent.includes('Fund / bill plan'));
+  if(fundSection){
+    const pEl=fundSection.querySelector('p');
+    if(pEl)pEl.textContent='Same logic as 💗 PAYDAY DESK: Target This Check − Actually Moved = Still Needed. Changing a number recalculates the paycheck totals.';
+  }
+}
+
+const hoaWorkbookParityBaseRenderPayday=renderPayday;
+renderPayday=function(){
+  const out=hoaWorkbookParityBaseRenderPayday();
+  hoaInstallWorkbookPaycheckInputs();
+  return out;
+};
