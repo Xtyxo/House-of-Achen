@@ -697,3 +697,69 @@ renderPaydayLive=function(){
 };
 hoaDecorateNavigation();
 if(currentView==='payday')renderPayday();
+
+// Payday Desk spreadsheet parity v2: exact workbook group names, explicit totals,
+// and mobile-safe editing (no full rerender while a number field has focus).
+window.HOA_PAYDAY_SHEET_PARITY=2;
+window.hoaPdEditing=false;
+
+function hoaPdN(v){const n=Number(v);return Number.isFinite(n)?Math.max(0,n):0}
+function hoaPdSpent(p,q){return typeof hoaQuickEffectiveSpent==='function'?Math.max(0,num(hoaQuickEffectiveSpent(p,q))):typeof hoaQuickLedgerSpent==='function'?Math.max(0,num(hoaQuickLedgerSpent(p,q.name))):Math.max(0,num(q?.spentManual))}
+function hoaPdTotals(p){
+  const c=calcPaycheck(p),aa=p?.allocations||[],qq=p?.quickSpend||[];
+  const target=aa.reduce((s,a)=>s+hoaPdN(a.planned),0)+qq.reduce((s,q)=>s+hoaPdN(q.cap),0);
+  const actual=aa.reduce((s,a)=>s+hoaPdN(a.moved),0)+qq.reduce((s,q)=>s+hoaPdSpent(p,q),0);
+  const still=aa.reduce((s,a)=>s+Math.max(0,hoaPdN(a.planned)-hoaPdN(a.moved)),0)+qq.reduce((s,q)=>s+Math.max(0,hoaPdN(q.cap)-hoaPdSpent(p,q)),0);
+  const balance=num(c.actualCashLeft);
+  return {...c,target,actual,still,balance,left:balance-still};
+}
+function hoaPdGroupTotals(p,g){
+  const aa=(p?.allocations||[]).filter(a=>(a.group||'')===g),qq=g==='Expenses'?(p?.quickSpend||[]):[];
+  return {
+    target:aa.reduce((s,a)=>s+hoaPdN(a.planned),0)+qq.reduce((s,q)=>s+hoaPdN(q.cap),0),
+    actual:aa.reduce((s,a)=>s+hoaPdN(a.moved),0)+qq.reduce((s,q)=>s+hoaPdSpent(p,q),0),
+    still:aa.reduce((s,a)=>s+Math.max(0,hoaPdN(a.planned)-hoaPdN(a.moved)),0)+qq.reduce((s,q)=>s+Math.max(0,hoaPdN(q.cap)-hoaPdSpent(p,q)),0)
+  };
+}
+function hoaPdKey(g){return String(g).toLowerCase().replace(/[^a-z0-9]+/g,'-')}
+function hoaPdFocus(){return `onfocus="hoaPdEditing=true" onblur="hoaPdEditing=false"`}
+function hoaPdInput(v,onchange,label){return `<input aria-label="${esc(label)}" type="number" inputmode="decimal" min="0" step=".01" value="${hoaPdN(v)}" ${hoaPdFocus()} onchange="${onchange}">`}
+function hoaPdSaveTop(field,el){const p=selectedPaycheck();if(!p)return;p[field]=hoaPdN(el.value);markPayEdited(p);saveState(false);hoaPdRefresh()}
+function hoaPdSaveAlloc(i,field,el){const p=selectedPaycheck(),a=p?.allocations?.[i];if(!a)return;a[field]=hoaPdN(el.value);markPayEdited(p);saveState(false);hoaPdRefresh()}
+function hoaPdSaveQuick(i,el){const p=selectedPaycheck(),q=p?.quickSpend?.[i];if(!q)return;q.cap=hoaPdN(el.value);markPayEdited(p);saveState(false);hoaPdRefresh()}
+function hoaPdSaveNotes(el){const p=selectedPaycheck();if(!p)return;p.notes=el.value;markPayEdited(p);saveState(false)}
+function hoaPdGroupSection(p,g){
+  const rows=[];
+  (p?.allocations||[]).forEach((a,i)=>{if((a.group||'')!==g)return;rows.push(`<tr><td><b>${esc(a.name)}</b></td><td>${hoaPdInput(a.planned,`hoaPdSaveAlloc(${i},'planned',this)`,`Target for ${a.name}`)}</td><td>${hoaPdInput(a.moved,`hoaPdSaveAlloc(${i},'moved',this)`,`Actually moved for ${a.name}`)}</td><td class="hoa-pd-formula" data-hoa-rem-a="${i}">${money(Math.max(0,hoaPdN(a.planned)-hoaPdN(a.moved)))}</td><td><button class="btn tiny" onclick="openAllocationModal(${i})">Edit</button></td></tr>`)});
+  if(g==='Expenses')(p?.quickSpend||[]).forEach((q,i)=>{const spent=hoaPdSpent(p,q);rows.push(`<tr><td><b>${esc(q.name)}</b><small>${esc(q.priority||'Expense')}</small></td><td>${hoaPdInput(q.cap,`hoaPdSaveQuick(${i},this)`,`Target for ${q.name}`)}</td><td class="hoa-pd-formula" data-hoa-spent-q="${i}">${money(spent)}</td><td class="hoa-pd-formula" data-hoa-rem-q="${i}">${money(Math.max(0,hoaPdN(q.cap)-spent))}</td><td><button class="btn tiny" onclick="openQuickModal(${i})">Edit</button></td></tr>`)});
+  if(!rows.length)return '';
+  const t=hoaPdGroupTotals(p,g),k=hoaPdKey(g);
+  return `<section class="hoa-pd-section"><div class="section-title"><div><h3>${esc(g)}</h3><p>Target This Check − funded/spent = Still Needed.</p></div><button class="btn" onclick="openAllocationModal()">+ Add category</button></div><div class="hoa-pd-table-wrap"><table class="hoa-pd-table"><thead><tr><th>Category</th><th>Target This Check</th><th>Funded / Spent</th><th>Still Needed</th><th></th></tr></thead><tbody>${rows.join('')}<tr class="hoa-pd-total-row"><td><b>${esc(g)} TOTAL</b></td><td class="hoa-pd-formula" data-hoa-gt="${k}">${money(t.target)}</td><td class="hoa-pd-formula" data-hoa-ga="${k}">${money(t.actual)}</td><td class="hoa-pd-formula" data-hoa-gs="${k}">${money(t.still)}</td><td></td></tr></tbody></table></div></section>`;
+}
+function hoaPdRefresh(){
+  if(currentView!=='payday')return;const p=selectedPaycheck();if(!p)return;const t=hoaPdTotals(p);
+  const set=(q,v)=>{const e=document.querySelector(q);if(e)e.textContent=v};
+  [['balance',t.balance],['target',t.target],['still',t.still],['left',t.left],['actual',t.actual],['safe',t.safe]].forEach(([k,v])=>document.querySelectorAll(`[data-hoa-total="${k}"]`).forEach(e=>e.textContent=money(v)));
+  (p.allocations||[]).forEach((a,i)=>set(`[data-hoa-rem-a="${i}"]`,money(Math.max(0,hoaPdN(a.planned)-hoaPdN(a.moved)))));
+  (p.quickSpend||[]).forEach((q,i)=>{const s=hoaPdSpent(p,q);set(`[data-hoa-spent-q="${i}"]`,money(s));set(`[data-hoa-rem-q="${i}"]`,money(Math.max(0,hoaPdN(q.cap)-s)))});
+  ['Bills','Debt Payments','Savings','Expenses','Investments','Transfer'].forEach(g=>{const x=hoaPdGroupTotals(p,g),k=hoaPdKey(g);set(`[data-hoa-gt="${k}"]`,money(x.target));set(`[data-hoa-ga="${k}"]`,money(x.actual));set(`[data-hoa-gs="${k}"]`,money(x.still))});
+}
+renderPayday=function(){
+  const p=selectedPaycheck(),list=paychecksSorted().filter(x=>!x.historyOnly||x.id===p?.id),t=hoaPdTotals(p),groups=['Bills','Debt Payments','Savings','Expenses','Investments','Transfer'];
+  document.getElementById('content').innerHTML=`<div class="hoa-pd-page">
+    <section class="hoa-pd-hero"><div><div class="eyebrow">HOUSE OF ACHEN · 💗 PAYDAY DESK</div><h2>Payday Desk</h2><p>Workbook groups and totals — no mystery “Spoken for” number.</p></div><div class="hoa-pd-hero-actions"><button class="btn" onclick="nav('payday-live')">Bank Activity</button><button class="btn" onclick="openPaycheckModal('${p?.id||''}')">Paycheck details</button><button class="btn primary" onclick="openPaycheckModal()">+ New paycheck</button></div></section>
+    <section class="card hoa-pd-selector"><label><span>Viewing paycheck</span><select onchange="state.selectedPaycheckId=this.value;saveState(false);renderPayday()">${list.map(x=>`<option value="${x.id}" ${x.id===p?.id?'selected':''}>${esc(x.name)} · ${fmtDate(x.date)}</option>`).join('')}</select></label><div><span>Paycheck Date</span><b>${p?fmtDate(p.date):'—'}</b></div></section>
+    ${p?`
+    <section class="hoa-pd-kpis"><article><span>Check Balance</span><b data-hoa-total="balance">${money(t.balance)}</b><small>Current money left from this check.</small></article><article class="blue"><span>Total Target This Check</span><b data-hoa-total="target">${money(t.target)}</b><small>All category targets added together.</small></article><article><span>Still Needed Across Categories</span><b data-hoa-total="still">${money(t.still)}</b><small>All unfunded category targets.</small></article><article class="rose"><span>Left After Remaining Targets</span><b data-hoa-total="left">${money(t.left)}</b><small>Check Balance − Still Needed.</small></article></section>
+    <section class="card hoa-pd-input-card"><div class="section-title"><div><h3>PAYDAY DESK totals</h3><p>Every number is named for what it actually represents.</p></div></div><div class="hoa-pd-breakdown"><div><span>Total Target This Check</span><b data-hoa-total="target">${money(t.target)}</b><small>Sum of every Target This Check below.</small></div><div><span>Funded / Spent So Far</span><b data-hoa-total="actual">${money(t.actual)}</b><small>Actually Moved + category spending.</small></div><div class="accent-blue"><span>Still Needed Across Categories</span><b data-hoa-total="still">${money(t.still)}</b><small>Target minus funded/spent for every category.</small></div><div class="accent"><span>Check Balance</span><b data-hoa-total="balance">${money(t.balance)}</b><small>The check balance you are working with now.</small></div><div class="accent-rose"><span>Left After Remaining Targets</span><b data-hoa-total="left">${money(t.left)}</b><small>Check Balance − Still Needed Across Categories.</small></div><div><span>Safe To Spend After Bills + Cushion</span><b data-hoa-total="safe">${money(t.safe)}</b><small>Your existing safety calculation stays separate.</small></div></div><div class="hoa-pd-input-grid" style="margin-top:10px"><label class="hoa-pd-input"><span>Starting Checking Balance</span>${hoaPdInput(p.startingChecking,`hoaPdSaveTop('startingChecking',this)`,'Starting Checking Balance')}</label><label class="hoa-pd-input"><span>Bills Due Before Next Check</span>${hoaPdInput(p.billsDue,`hoaPdSaveTop('billsDue',this)`,'Bills Due Before Next Check')}</label><label class="hoa-pd-input"><span>Keep-in-Checking Cushion</span>${hoaPdInput(p.cushion,`hoaPdSaveTop('cushion',this)`,'Keep-in-Checking Cushion')}</label></div><label class="hoa-pd-notes"><span>Notes</span><textarea ${hoaPdFocus()} oninput="hoaPdSaveNotes(this)" placeholder="Paycheck notes…">${esc(p.notes||'')}</textarea></label></section>
+    <section class="hoa-pd-section"><div class="section-title"><div><h3>Income</h3><p>Same section name as the House of Achen spreadsheet.</p></div></div><div class="hoa-pd-table-wrap"><table class="hoa-pd-table"><thead><tr><th>Category</th><th>Amount This Check</th><th colspan="3"></th></tr></thead><tbody><tr><td><b>Paycheck Received</b></td><td>${hoaPdInput(p.netPay,`hoaPdSaveTop('netPay',this)`,'Paycheck Received')}</td><td colspan="3"></td></tr><tr><td><b>Other Income</b></td><td>${hoaPdInput(p.otherIncome,`hoaPdSaveTop('otherIncome',this)`,'Other Income')}</td><td colspan="3"></td></tr></tbody></table></div></section>
+    ${groups.map(g=>hoaPdGroupSection(p,g)).join('')}
+    `:'<div class="empty-state">Create a paycheck to begin.</div>'}
+  </div>`;
+};
+
+// Android keyboard focus guard: if a background render fires because the viewport changed,
+// do not replace the focused Payday Desk input.
+const hoaPdParityBaseRender=render;
+render=function(){const a=document.activeElement;if(currentView==='payday'&&hoaPdEditing&&a&&a.closest?.('.hoa-pd-page'))return;return hoaPdParityBaseRender.apply(this,arguments)};
+if(currentView==='payday')renderPayday();

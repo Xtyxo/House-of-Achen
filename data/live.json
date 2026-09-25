@@ -1,6 +1,6 @@
 {
-  "publishedAt": "2026-09-21T01:20:00Z",
-  "source": "Nova • ChatGPT Finances • refreshed balances; Ally adjusted from recent bank activity",
+  "publishedAt": "2026-09-25T08:45:00Z",
+  "source": "ChatGPT Finances • latest available linked-account balances; source-reported balance timestamps unavailable",
   "accounts": [
     {
       "id": "acct_paypal",
@@ -12,7 +12,7 @@
       "connected": true,
       "snapshot": true,
       "asOf": null,
-      "freshness": "Latest available snapshot; source-reported balance time unavailable"
+      "freshness": "Latest available linked-account snapshot; source-reported balance time unavailable"
     },
     {
       "id": "acct_varo_save",
@@ -24,7 +24,7 @@
       "connected": true,
       "snapshot": true,
       "asOf": null,
-      "freshness": "Latest available snapshot; source-reported balance time unavailable"
+      "freshness": "Latest available linked-account snapshot; source-reported balance time unavailable"
     },
     {
       "id": "acct_varo_check",
@@ -36,7 +36,7 @@
       "connected": true,
       "snapshot": true,
       "asOf": null,
-      "freshness": "Latest available snapshot; source-reported balance time unavailable"
+      "freshness": "Latest available linked-account snapshot; source-reported balance time unavailable"
     },
     {
       "id": "acct_capone_check",
@@ -48,7 +48,7 @@
       "connected": true,
       "snapshot": true,
       "asOf": null,
-      "freshness": "Plaid latest available snapshot; source-reported balance time unavailable"
+      "freshness": "Latest available linked-account snapshot; source-reported balance time unavailable"
     },
     {
       "id": "acct_capone_save",
@@ -60,7 +60,7 @@
       "connected": true,
       "snapshot": true,
       "asOf": null,
-      "freshness": "Plaid latest available snapshot; source-reported balance time unavailable"
+      "freshness": "Latest available linked-account snapshot; source-reported balance time unavailable"
     },
     {
       "id": "acct_marcus",
@@ -72,31 +72,31 @@
       "connected": true,
       "snapshot": true,
       "asOf": null,
-      "freshness": "Latest available snapshot; source-reported balance time unavailable"
+      "freshness": "Latest available linked-account snapshot; source-reported balance time unavailable"
     },
     {
       "id": "acct_chime_save",
       "name": "Chime Savings",
       "institution": "Chime",
       "type": "Savings",
-      "rawBalance": 128.26,
-      "currentBalance": 128.26,
+      "rawBalance": 5.56,
+      "currentBalance": 5.56,
       "connected": true,
       "snapshot": true,
       "asOf": null,
-      "freshness": "Latest available snapshot; source-reported balance time unavailable"
+      "freshness": "Latest available linked-account snapshot; source-reported balance time unavailable"
     },
     {
       "id": "acct_chime_check",
       "name": "Chime Checking",
       "institution": "Chime",
       "type": "Bank",
-      "rawBalance": -28.6,
-      "currentBalance": -28.6,
+      "rawBalance": -39.48,
+      "currentBalance": -39.48,
       "connected": true,
       "snapshot": true,
       "asOf": null,
-      "freshness": "Latest available snapshot; source-reported balance time unavailable"
+      "freshness": "Latest available linked-account snapshot; source-reported balance time unavailable"
     },
     {
       "id": "acct_ally_save",
@@ -108,19 +108,19 @@
       "connected": true,
       "snapshot": true,
       "asOf": null,
-      "freshness": "Latest available snapshot; source-reported balance time unavailable"
+      "freshness": "Latest available linked-account snapshot; source-reported balance time unavailable"
     },
     {
       "id": "acct_ally_spend",
       "name": "Ally Spending",
       "institution": "Ally Bank",
       "type": "Bank",
-      "rawBalance": -31.23,
-      "currentBalance": -31.23,
+      "rawBalance": -99.97,
+      "currentBalance": -99.97,
       "connected": true,
       "snapshot": true,
       "asOf": null,
-      "freshness": "Transaction-adjusted estimate from the corrected $23.41 baseline, recent posted purchases, and one pending $24.45 charge; Plaid balance snapshot is stale"
+      "freshness": "Latest available linked-account snapshot; source-reported balance time unavailable"
     },
     {
       "id": "acct_current",
@@ -132,7 +132,7 @@
       "connected": true,
       "snapshot": true,
       "asOf": null,
-      "freshness": "Latest available snapshot; source-reported balance time unavailable"
+      "freshness": "Latest available linked-account snapshot; source-reported balance time unavailable"
     }
   ],
   "bankTransactions": [
